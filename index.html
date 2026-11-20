@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>嘘つきサイコロ</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f8eaff;
+      color: #55415f;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 24px 14px;
+    }
+    main {
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+    h1 { color: #a66bc2; font-size: 30px; }
+    .panel {
+      background: white;
+      border: 3px solid #e8c9f5;
+      border-radius: 20px;
+      padding: 20px;
+      margin: 16px 0;
+      box-shadow: 0 5px 0 #dfc0ed;
+    }
+    input, button {
+      width: 100%;
+      padding: 13px;
+      margin: 7px 0;
+      border-radius: 12px;
+      font-size: 16px;
+    }
+    input { border: 2px solid #e8c9f5; }
+    button {
+      border: 0;
+      background: #b77bd1;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .5; }
+    #status { min-height: 24px; color: #9462a8; }
+    .small { font-size: 12px; color: #927e99; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>🎲 嘘つきサイコロ</h1>
+  <p>うそを見破って、ゴールを目指そう！</p>
+
+  <section class="panel">
+    <h2>プレイヤー名</h2>
+    <input id="playerName" maxlength="12" placeholder="名前を入力">
+  </section>
+
+  <section class="panel">
+    <h2>🏠 友達と遊ぶ</h2>
+    <button id="createRoom">ルームを作る</button>
+    <input id="roomCode" maxlength="6" placeholder="ルームコード">
+    <button id="joinRoom">ルームに参加</button>
+  </section>
+
+  <section class="panel">
+    <h2>🎮 ランダムマッチ</h2>
+    <button id="randomMatch">対戦相手を探す</button>
+  </section>
+
+  <p id="status">Supabase接続の準備中…</p>
+  <p class="small">嘘つきサイコロ / Online Edition</p>
+</main>
+
+<script>
+  // 次の工程でSupabase接続とオンライン対戦処理を追加します。
+  const statusText = document.getElementById("status");
+
+  document.getElementById("createRoom").onclick = () => {
+    statusText.textContent = "ルーム作成機能を準備中です。";
+  };
+
+  document.getElementById("joinRoom").onclick = () => {
+    statusText.textContent = "ルーム参加機能を準備中です。";
+  };
+
+  document.getElementById("randomMatch").onclick = () => {
+    statusText.textContent = "ランダムマッチ機能を準備中です。";
+  };
+</script>
+</body>
+</html>
