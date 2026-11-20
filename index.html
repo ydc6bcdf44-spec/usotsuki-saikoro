@@ -5,20 +5,45 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>嘘つきサイコロ</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f6eaff;color:#594568;font-family:monospace;text-align:center;padding:16px}
-main{max-width:480px;margin:auto}
-h1{color:#a66bc2;font-size:27px}
-.panel{background:white;border:3px solid #e4c7f3;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 4px 0 #ddc1eb}
-button{border:2px solid #dfc3ee;border-radius:10px;padding:12px;font-size:16px;margin:5px;background:#bd8bd3;color:white;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.4}
+body{
+ margin:0;padding:18px;background:#f6eaff;color:#594568;
+ font-family:monospace;text-align:center
+}
+main{max-width:520px;margin:auto}
+h1{color:#a66bc2;font-size:28px}
+p{line-height:1.7}
+.panel{
+ background:white;border:3px solid #e4c7f3;border-radius:16px;
+ padding:16px;margin:14px 0;box-shadow:0 4px 0 #ddc1eb
+}
+input{
+ width:100%;padding:13px;margin:7px 0;border:2px solid #dfc3ee;
+ border-radius:10px;font-size:16px;text-align:center
+}
+button{
+ border:2px solid #dfc3ee;border-radius:10px;padding:12px;
+ font-size:15px;margin:5px;background:#bd8bd3;color:white;
+ font-weight:bold;cursor:pointer
+}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.secondary{background:#e9d8f3;color:#684b7c}
+button.pink{background:#e9a9c9;border-color:#e9a9c9}
+.small{font-size:12px;color:#917da0}
+#status{min-height:24px;color:#9565ad;font-weight:bold}
+#roomCode{font-size:30px;letter-spacing:5px;color:#a66bc2;font-weight:bold}
 .board{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
-.cell{background:#f0e2f8;border:2px solid #dfc6ed;border-radius:7px;padding:9px 2px;font-size:12px}
+.cell{
+ background:#f0e2f8;border:2px solid #dfc6ed;border-radius:7px;
+ padding:9px 2px;font-size:12px;min-height:39px
+}
 .me{background:#c8a1e4}
 .enemy{background:#f5b9d2}
 .dice{font-size:65px;margin:10px}
-#message{min-height:45px;line-height:1.7}
+.hidden{display:none!important}
+#message{min-height:48px;line-height:1.7}
 </style>
 </head>
 <body>
@@ -27,130 +52,377 @@ button:disabled{opacity:.4}
 <p>うそを見破って30マスを目指そう！</p>
 
 <div class="panel">
-<div>PLAYER 1 🩵</div>
-<b id="p1">0 / 30</b>
-<div>PLAYER 2 💗</div>
-<b id="p2">0 / 30</b>
+ <div id="status">接続中...</div>
+ <div id="loginArea">
+  <p>プレイヤー名を入力してね</p>
+  <input id="playerName" maxlength="12" placeholder="プレイヤー名">
+  <button id="createBtn">🌷 ルームを作る</button>
+  <p>または招待コードで参加</p>
+  <input id="joinCode" maxlength="6" placeholder="招待コード">
+  <button id="joinBtn" class="secondary">ルームに参加</button>
+  <hr style="border:0;border-top:1px solid #ead8f2;margin:18px 0">
+  <button id="randomBtn" class="pink">🎲 ランダムマッチ</button>
+ </div>
+
+ <div id="waitingArea" class="hidden">
+  <p>招待コードを友達に教えてね！</p>
+  <div id="roomCode"></div>
+  <p class="small">相手が参加すると対戦が始まるよ</p>
+ </div>
+</div>
+
+<div id="gameArea" class="hidden">
+ <div class="panel">
+  <div id="player0">PLAYER 1 🩵</div>
+  <b id="p0">0 / 30</b>
+  <hr style="border:0;border-top:1px solid #ead8f2;margin:12px 0">
+  <div id="player1">PLAYER 2 💗</div>
+  <b id="p1">0 / 30</b>
+ </div>
+
+ <div class="panel">
+  <h3>🌷 GAME BOARD</h3>
+  <div class="board" id="board"></div>
+ </div>
+
+ <div class="panel">
+  <div id="turn"></div>
+  <div class="dice" id="dice">🎲</div>
+  <div id="message">ゲーム開始！</div>
+
+  <div id="rollArea">
+   <button id="rollBtn">サイコロを振る</button>
+  </div>
+
+  <div id="declareArea" class="hidden">
+   <p>出目を宣言してね！</p>
+   <button id="truthBtn">本当の出目</button>
+   <button id="lieBtn" class="pink">嘘の出目</button>
+  </div>
+
+  <div id="challengeArea" class="hidden">
+   <p>宣言を信じる？</p>
+   <button id="doubtBtn" class="pink">ダウト！</button>
+   <button id="believeBtn">信じる</button>
+  </div>
+ </div>
 </div>
 
 <div class="panel">
-<h3>🌷 GAME BOARD</h3>
-<div class="board" id="board"></div>
-</div>
-
-<div class="panel">
-<div id="turn">PLAYER 1 のターン</div>
-<div class="dice" id="dice">🎲</div>
-<div id="message">サイコロを振ってね！</div>
-<button id="roll">サイコロを振る</button>
-<div id="choices" hidden>
-<button id="truth">本当の出目を宣言</button>
-<button id="lie">嘘の出目を宣言</button>
-</div>
-<div id="challenge" hidden>
-<button id="doubt">ダウト！</button>
-<button id="believe">信じる</button>
-</div>
-<button id="next" hidden>次のターンへ</button>
-<button id="reset">最初から遊ぶ</button>
+ <button id="backBtn" class="secondary">タイトルに戻る</button>
+ <p class="small">オンライン対戦 / 2人用</p>
 </div>
 </main>
 
 <script>
-let pos=[0,0],turn=0,real=0,claim=0;
-let phase="roll",finished=false;
-const board=document.getElementById("board");
-const msg=document.getElementById("message");
-const dice=document.getElementById("dice");
-const roll=document.getElementById("roll");
-const choices=document.getElementById("choices");
-const challenge=document.getElementById("challenge");
-const next=document.getElementById("next");
+const SUPABASE_URL = "https://pggwvveeprbnowrarbff.supabase.co";
+const SUPABASE_KEY = "sb_publishable_zk1iWPtsHN8GkWIDRHeLrw_Yr9iMZWT";
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-for(let i=0;i<=30;i++){
- const c=document.createElement("div");
- c.className="cell";
- c.textContent=i===0?"START":i===30?"GOAL":i;
- board.appendChild(c);
+let user = null;
+let room = null;
+let myIndex = -1;
+let game = null;
+let channel = null;
+let poller = null;
+let busy = false;
+
+const $ = id => document.getElementById(id);
+const symbols = ["","⚀","⚁","⚂","⚃","⚄","⚅"];
+
+function say(text){$("status").textContent=text;}
+function name(){
+ return $("playerName").value.trim().slice(0,12) || "プレイヤー";
+}
+function initialGame(hostName){
+ return {
+  players:[hostName,"プレイヤー2"],
+  pos:[0,0],
+  turn:0,
+  phase:"roll",
+  real:null,
+  claim:null,
+  claimant:null,
+  finished:false,
+  winner:null,
+  message:"ゲーム開始！"
+ };
+}
+function makeCode(){
+ return Math.random().toString(36).substring(2,8).toUpperCase();
+}
+function show(el,yes){$(el).classList.toggle("hidden",!yes);}
+
+async function connect(){
+ try{
+  const result = await db.auth.signInAnonymously();
+  if(result.error) throw result.error;
+  user=result.data.user;
+  say("接続しました！");
+ }catch(e){
+  say("接続エラー："+e.message);
+  $("createBtn").disabled=true;
+  $("joinBtn").disabled=true;
+  $("randomBtn").disabled=true;
+ }
+}
+connect();
+
+async function createRoom(isRandom=false){
+ if(!user)return alert("まだ接続中だよ。少し待ってね！");
+ if(busy)return;
+ busy=true;
+ say("ルームを作成中...");
+ try{
+  let created=null;
+  for(let i=0;i<5;i++){
+   const code=makeCode();
+   const result=await db.from("game_rooms").insert({
+    code,
+    host_id:user.id,
+    status:"waiting",
+    game_state:initialGame(name())
+   }).select().single();
+   if(!result.error){created=result.data;break;}
+   if(!String(result.error.message).toLowerCase().includes("duplicate"))
+    throw result.error;
+  }
+  if(!created)throw new Error("ルームを作成できませんでした。もう一度試してね。");
+  room=created;
+  myIndex=0;
+  game=created.game_state;
+  show("loginArea",false);
+  show("waitingArea",true);
+  $("roomCode").textContent=created.code;
+  say(isRandom?"対戦相手を探しています...":"ルームを作ったよ！");
+  startSync();
+ }catch(e){
+  say("エラー："+e.message);
+  alert("ルーム作成エラー："+e.message);
+ }finally{busy=false;}
+}
+
+async function joinRoom(code){
+ if(!user)return alert("まだ接続中だよ。少し待ってね！");
+ if(busy)return;
+ busy=true;
+ say("ルームを探しています...");
+ try{
+  const found=await db.from("game_rooms")
+   .select("*").eq("code",code).eq("status","waiting")
+   .is("guest_id",null).maybeSingle();
+  if(found.error)throw found.error;
+  if(!found.data)throw new Error("部屋が見つからないよ。コードを確認してね。");
+
+  const newGame=found.data.game_state || initialGame("プレイヤー1");
+  newGame.players[1]=name();
+
+  const joined=await db.from("game_rooms")
+   .update({guest_id:user.id,status:"playing",game_state:newGame})
+   .eq("id",found.data.id).is("guest_id",null)
+   .select().maybeSingle();
+
+  if(joined.error)throw joined.error;
+  if(!joined.data)throw new Error("ほかの人が先に参加したみたい。");
+
+  room=joined.data;
+  myIndex=1;
+  game=room.game_state;
+  show("loginArea",false);
+  show("waitingArea",false);
+  show("gameArea",true);
+  startSync();
+  render();
+ }catch(e){
+  say("参加できませんでした");
+  alert(e.message);
+ }finally{busy=false;}
+}
+
+async function randomMatch(){
+ if(!user)return alert("まだ接続中だよ。少し待ってね！");
+ say("対戦相手を探しています...");
+ try{
+  const found=await db.from("game_rooms")
+   .select("*").eq("status","waiting").is("guest_id",null)
+   .neq("host_id",user.id).limit(1).maybeSingle();
+
+  if(found.error)throw found.error;
+  if(found.data){
+   await joinRoom(found.data.code);
+  }else{
+   await createRoom(true);
+  }
+ }catch(e){
+  say("エラー："+e.message);
+  alert(e.message);
+ }
+}
+
+async function startSync(){
+ show("waitingArea",room.status==="waiting");
+ show("gameArea",room.status==="playing");
+ if(room.status==="waiting"){
+  $("roomCode").textContent=room.code;
+ }
+ if(channel)await db.removeChannel(channel);
+ channel=db.channel("room-"+room.id)
+  .on("postgres_changes",{
+   event:"UPDATE",schema:"public",table:"game_rooms",
+   filter:"id=eq."+room.id
+  },payload=>receive(payload.new))
+  .subscribe();
+
+ if(poller)clearInterval(poller);
+ poller=setInterval(refresh,1500);
+}
+
+function receive(row){
+ if(!row)return;
+ room=row;
+ if(row.status==="playing"){
+  game=row.game_state;
+  show("waitingArea",false);
+  show("gameArea",true);
+  render();
+ }
+}
+async function refresh(){
+ if(!room)return;
+ const result=await db.from("game_rooms")
+  .select("*").eq("id",room.id).maybeSingle();
+ if(!result.error&&result.data)receive(result.data);
+}
+
+async function saveGame(next){
+ if(!room||busy)return;
+ busy=true;
+ try{
+  const result=await db.from("game_rooms")
+   .update({game_state:next})
+   .eq("id",room.id)
+   .select().single();
+  if(result.error)throw result.error;
+  receive(result.data);
+ }catch(e){
+  alert("保存エラー："+e.message);
+ }finally{busy=false;}
 }
 
 function render(){
- document.getElementById("p1").textContent=pos[0]+" / 30";
- document.getElementById("p2").textContent=pos[1]+" / 30";
- [...board.children].forEach((c,i)=>{
+ if(!game)return;
+ $("player0").textContent=game.players[0]+" 🩵";
+ $("player1").textContent=game.players[1]+" 💗";
+ $("p0").textContent=game.pos[0]+" / 30";
+ $("p1").textContent=game.pos[1]+" / 30";
+
+ const board=$("board");
+ board.innerHTML="";
+ for(let i=0;i<=30;i++){
+  const c=document.createElement("div");
   c.className="cell";
-  if(pos[0]===i)c.classList.add("me");
-  if(pos[1]===i)c.classList.add("enemy");
-  c.textContent=pos[0]===i&&pos[1]===i&&i!==0?"🩵💗":pos[0]===i?"🩵":pos[1]===i?"💗":i===0?"START":i===30?"GOAL":i;
- });
- document.getElementById("turn").textContent="PLAYER "+(turn+1)+" のターン";
+  if(game.pos[0]===i)c.classList.add("me");
+  if(game.pos[1]===i)c.classList.add("enemy");
+  c.textContent=game.pos[0]===i&&game.pos[1]===i&&i!==0
+   ?"🩵💗":game.pos[0]===i?"🩵":game.pos[1]===i?"💗"
+   :i===0?"START":i===30?"GOAL":i;
+  board.appendChild(c);
+ }
+
+ $("turn").textContent=game.finished
+  ?"GAME FINISHED"
+  :game.players[game.turn]+" のターン";
+
+ $("dice").textContent=game.claim===null?"🎲":symbols[game.claim];
+ $("message").textContent=game.message || "";
+
+ const myTurn=game.turn===myIndex;
+ const myChallenge=game.phase==="challenge"&&game.claimant!==myIndex;
+ show("rollArea",!game.finished&&game.phase==="roll"&&myTurn);
+ show("declareArea",!game.finished&&game.phase==="declare"&&myTurn);
+ show("challengeArea",!game.finished&&game.phase==="challenge"&&!myTurn);
 }
 
-roll.onclick=()=>{
- if(phase!=="roll"||finished)return;
- real=Math.floor(Math.random()*6)+1;
- dice.textContent=["","⚀","⚁","⚂","⚃","⚄","⚅"][real];
- msg.textContent="本当の出目は "+real+"！宣言を選んでね。";
- roll.hidden=true;choices.hidden=false;phase="declare";
-};
-
-document.getElementById("truth").onclick=()=>declare(real);
-document.getElementById("lie").onclick=()=>{
- let options=[1,2,3,4,5,6].filter(x=>x!==real);
- declare(options[Math.floor(Math.random()*5)]);
-};
-
-function declare(n){
- claim=n;choices.hidden=true;challenge.hidden=false;
- msg.textContent="PLAYER "+(turn+1)+" は "+claim+" と宣言した！";
- phase="challenge";
+async function rollDice(){
+ if(!game||game.phase!=="roll"||game.turn!==myIndex||busy)return;
+ const next={...game};
+ next.real=Math.floor(Math.random()*6)+1;
+ next.claim=null;
+ next.claimant=myIndex;
+ next.phase="declare";
+ next.message="出目を宣言してね！";
+ await saveGame(next);
 }
 
-document.getElementById("doubt").onclick=()=>{
- challenge.hidden=true;
- if(claim!==real){
-  msg.textContent="🎉 ダウト成功！嘘を見破った！";
-  pos[turn]++;
+async function declare(isTruth){
+ if(!game||game.phase!=="declare"||game.turn!==myIndex||busy)return;
+ const next={...game};
+ let value=next.real;
+ if(!isTruth){
+  const choices=[1,2,3,4,5,6].filter(n=>n!==next.real);
+  value=choices[Math.floor(Math.random()*choices.length)];
+ }
+ next.claim=value;
+ next.phase="challenge";
+ next.message=next.players[myIndex]+" は "+value+" と宣言した！";
+ await saveGame(next);
+}
+
+async function challenge(doubt){
+ if(!game||game.phase!=="challenge"||game.turn===myIndex||busy)return;
+ const next={...game};
+ const declarer=next.claimant;
+ const challenger=1-declarer;
+
+ if(doubt){
+  if(next.claim!==next.real){
+   next.pos[challenger]++;
+   next.message="🎉 ダウト成功！嘘を見破った！";
+  }else{
+   next.pos[declarer]++;
+   next.message="💦 ダウト失敗！本当だった！";
+  }
  }else{
-  msg.textContent="💦 ダウト失敗！本当だった！";
-  pos[1-turn]++;
+  next.pos[declarer]+=next.claim;
+  next.message="信じた！ "+next.claim+" マス進む！";
  }
- finishRound();
-};
 
-document.getElementById("believe").onclick=()=>{
- challenge.hidden=true;
- pos[turn]+=claim;
- msg.textContent="宣言を信じた！ "+claim+" マス進む！";
- finishRound();
-};
-
-function finishRound(){
- pos[turn]=Math.min(30,pos[turn]);
- pos[1-turn]=Math.min(30,pos[1-turn]);
- render();
- if(pos[0]>=30||pos[1]>=30){
-  finished=true;
-  msg.textContent="🏆 PLAYER "+(pos[0]>=30?1:2)+" の勝利！！";
-  next.hidden=true;return;
+ next.pos[0]=Math.min(30,next.pos[0]);
+ next.pos[1]=Math.min(30,next.pos[1]);
+ if(next.pos[0]>=30||next.pos[1]>=30){
+  next.finished=true;
+  next.winner=next.pos[0]>=30?0:1;
+  next.message="🏆 "+next.players[next.winner]+" の勝利！！";
+ }else{
+  next.turn=1-next.turn;
+  next.phase="roll";
+  next.real=null;
+  next.claim=null;
+  next.claimant=null;
  }
- next.hidden=false;phase="next";
+ await saveGame(next);
 }
 
-next.onclick=()=>{
- turn=1-turn;phase="roll";next.hidden=true;
- roll.hidden=false;render();
- msg.textContent="サイコロを振ってね！";dice.textContent="🎲";
+$("createBtn").onclick=()=>createRoom(false);
+$("joinBtn").onclick=()=>joinRoom($("joinCode").value.trim().toUpperCase());
+$("randomBtn").onclick=randomMatch;
+$("rollBtn").onclick=rollDice;
+$("truthBtn").onclick=()=>declare(true);
+$("lieBtn").onclick=()=>declare(false);
+$("doubtBtn").onclick=()=>challenge(true);
+$("believeBtn").onclick=()=>challenge(false);
+$("joinCode").addEventListener("input",e=>{
+ e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+});
+$("backBtn").onclick=async()=>{
+ if(poller)clearInterval(poller);
+ if(channel)await db.removeChannel(channel);
+ room=null;game=null;myIndex=-1;
+ show("loginArea",true);
+ show("waitingArea",false);
+ show("gameArea",false);
+ say("タイトルに戻りました");
 };
-
-document.getElementById("reset").onclick=()=>{
- pos=[0,0];turn=0;finished=false;phase="roll";
- real=0;claim=0;roll.hidden=false;
- choices.hidden=true;challenge.hidden=true;next.hidden=true;
- dice.textContent="🎲";msg.textContent="サイコロを振ってね！";render();
-};
-
-render();
 </script>
 </body>
 </html>
