@@ -4,80 +4,120 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>嘘つきサイコロ</title>
+<title>嘘つきサイコロ - Island Adventure</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;padding:16px;background:#fff3dc;color:#655044;
- font-family:monospace;text-align:center;
- background-image:radial-gradient(#f8dfb6 1px,transparent 1px);
- background-size:18px 18px
+ margin:0;padding:14px;background:#b8e8ed;color:#594d51;
+ font-family:system-ui,sans-serif;text-align:center;
+ background-image:radial-gradient(#ffffff80 2px,transparent 2px);
+ background-size:25px 25px
 }
-main{max-width:520px;margin:auto}
-h1{color:#d17d87;font-size:27px}
-p{line-height:1.7}
+main{max-width:620px;margin:auto}
+h1{color:#d36e91;font-size:27px;text-shadow:2px 2px white}
+p{line-height:1.6}
 .panel{
- background:#fffdf6;border:3px solid #e9c99b;border-radius:18px;
- padding:15px;margin:14px 0;box-shadow:0 4px 0 #dfbd91
+ background:#fffaf0;border:3px solid #eacb9d;border-radius:20px;
+ padding:14px;margin:13px 0;box-shadow:0 5px 0 #d6b68c
 }
 input{
- width:100%;padding:13px;margin:7px 0;border:2px solid #e9c99b;
- border-radius:10px;font-size:16px;text-align:center
+ width:100%;padding:13px;margin:7px 0;border:2px solid #e8c99d;
+ border-radius:12px;font-size:16px;text-align:center
 }
 button{
- border:2px solid #e9c99b;border-radius:12px;padding:12px;
- font-size:15px;margin:5px;background:#d98c9b;color:white;
+ border:2px solid #dba6a8;border-radius:13px;padding:12px 15px;
+ font-size:15px;margin:5px;background:#df8fa5;color:white;
  font-weight:bold;cursor:pointer
 }
 button:disabled{opacity:.4;cursor:not-allowed}
-button.secondary{background:#f1dfc2;color:#765b46}
-button.pink{background:#e9a0bb;border-color:#e9a0bb}
+button.secondary{background:#eee0c7;color:#725b4d;border-color:#d8c29e}
 button.green{background:#83b99b;border-color:#83b99b}
-.small{font-size:12px;color:#a28a72}
-#status{min-height:24px;color:#b77c80;font-weight:bold}
+button.pink{background:#d77b9d}
+button.number{background:#f1c878;border-color:#dfb35c;color:#684d3d;font-size:19px;min-width:48px}
+.small{font-size:12px;color:#987f6d}
+.hidden{display:none!important}
+#status{min-height:24px;color:#b96e82;font-weight:bold}
 #roomCode{font-size:30px;letter-spacing:5px;color:#c8798b;font-weight:bold}
-.board{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
-.cell{
- background:#dff0d2;border:2px solid #b5d5a6;border-radius:9px;
- padding:7px 2px;font-size:12px;min-height:52px;
- display:flex;flex-direction:column;justify-content:center;align-items:center;
- gap:2px
+.topline{display:flex;justify-content:space-around;gap:8px}
+.player-card{flex:1;background:#fff0df;border-radius:15px;padding:10px;min-width:0}
+.player-card.active{outline:3px solid #e8a3b1}
+.player-card img{width:58px;height:58px;object-fit:contain}
+.player-card b{display:block;margin-top:5px}
+.timer{
+ font-size:32px;font-weight:bold;color:#d27c85;
+ background:#fff0e6;border-radius:14px;padding:7px;margin:8px auto;max-width:145px
 }
-.cell:nth-child(3n){background:#e6f2c9}
-.cell:nth-child(4n){background:#d7eddf}
-.cell.me{background:#ffd7d9;border-color:#e8a2aa}
-.cell.enemy{background:#e8d6ff;border-color:#c6a7e8}
-.cell.goal{background:#ffe49c;border-color:#e8bd62}
-.cell.start{background:#b9e4d0}
-.tokens{font-size:17px;line-height:1.2}
-.number{font-size:10px;color:#806d5c}
-.dice{font-size:68px;margin:10px;min-height:80px}
+.timer.danger{color:#e34d62;animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.08)}}
+.dice{font-size:65px;min-height:85px;margin:8px}
 .dice.rolling{animation:shake .12s infinite}
 @keyframes shake{
  0%{transform:rotate(-12deg) scale(1.05)}
  50%{transform:rotate(12deg) scale(.95)}
  100%{transform:rotate(-12deg) scale(1.05)}
 }
-.hidden{display:none!important}
-#message{min-height:48px;line-height:1.7}
-.timer{
- font-size:30px;font-weight:bold;color:#d27c85;
- background:#fff0e6;border-radius:12px;padding:8px;margin:8px auto;
- max-width:150px
+#message{min-height:45px;line-height:1.7;font-weight:bold;color:#986d69}
+#bgmBtn{background:#85b8a1;border-color:#85b8a1}
+#boardWrap{
+ position:relative;overflow:hidden;border-radius:22px;
+ border:4px solid #8bc8bd;
+ background:linear-gradient(160deg,#63cbd3 0%,#a6e5d9 45%,#6bc8ce 100%);
+ padding:17px 10px;isolation:isolate
 }
-.timer.danger{color:#e34d62;animation:pulse .5s infinite alternate}
-@keyframes pulse{to{transform:scale(1.08)}}
-.player-icon{font-size:25px}
-.topline{display:flex;justify-content:space-around;gap:8px;align-items:center}
-.player-card{flex:1;background:#fff4e8;border-radius:12px;padding:10px}
-#bgmBtn{background:#8eb9a1;border-color:#8eb9a1}
+#boardWrap:before{
+ content:"";position:absolute;z-index:-1;
+ width:125%;height:83%;left:-12%;top:9%;
+ background:#f4d49b;
+ border:8px solid #e9c184;border-radius:48% 42% 45% 40% / 42% 48% 38% 45%;
+ box-shadow:inset 0 0 0 7px #f9e6b8,0 5px 0 #56a9a5
+}
+#boardWrap:after{
+ content:"";position:absolute;z-index:-1;inset:0;opacity:.24;
+ background:repeating-radial-gradient(ellipse at 15% 20%,transparent 0 15px,#fff 16px 18px,transparent 19px 35px)
+}
+.island-deco{
+ position:absolute;z-index:0;font-size:34px;pointer-events:none;
+ filter:drop-shadow(1px 3px 1px #9a8b62)
+}
+.palm1{top:5px;left:7px}.palm2{bottom:4px;right:7px}
+.shell{top:5px;right:12px;font-size:24px}
+.board{
+ position:relative;z-index:1;
+ display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px
+}
+.cell{
+ min-height:49px;border:2px solid #d7b77e;border-radius:12px;
+ background:linear-gradient(#fff1c9,#f6dba8);
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ gap:1px;box-shadow:0 3px 0 #c8a36e;position:relative
+}
+.cell:nth-child(3n){background:linear-gradient(#e9f1c0,#d6e6a8)}
+.cell:nth-child(4n){background:linear-gradient(#d8eee0,#b9dfc7)}
+.cell.start{background:#a8dfc2}
+.cell.goal{background:linear-gradient(#ffe88d,#f4bd55);border-color:#d79c45}
+.cell.me{outline:3px solid #e4778c;outline-offset:-2px}
+.cell.enemy{outline:3px solid #a98bd4;outline-offset:-2px}
+.tokens{display:flex;align-items:center;justify-content:center;gap:0}
+.tokens img{width:27px;height:27px;object-fit:contain;margin:0 -2px}
+.number{font-size:10px;color:#806d5c;font-weight:bold}
+#rollArea button{min-width:190px}
+#numberChoices{display:flex;justify-content:center;flex-wrap:wrap;gap:3px}
+#privateRoll{color:#bd6681;font-weight:bold}
+footer{font-size:11px;color:#8f8177;margin:18px}
+@media(max-width:390px){
+ body{padding:7px}
+ .panel{padding:10px}
+ .cell{min-height:43px}
+ .tokens img{width:23px;height:23px}
+ .number{font-size:9px}
+}
 </style>
 </head>
 <body>
 <main>
-<h1>🏝️ 嘘つきサイコロ 🎲</h1>
-<p>うそを見破って30マスの島を冒険しよう！</p>
+<h1>🏝️ 嘘つきサイコロ</h1>
+<p>うそを見破って、島の30マスを冒険しよう！</p>
 
 <div class="panel">
  <div id="status">接続中...</div>
@@ -85,29 +125,30 @@ button.green{background:#83b99b;border-color:#83b99b}
   <p>プレイヤー名を入力してね</p>
   <input id="playerName" maxlength="12" placeholder="プレイヤー名">
   <button id="createBtn">🏝️ ルームを作る</button>
-  <p>または招待コードで参加</p>
+  <p>招待コードで参加</p>
   <input id="joinCode" maxlength="6" placeholder="招待コード">
   <button id="joinBtn" class="secondary">ルームに参加</button>
-  <hr style="border:0;border-top:1px solid #ead8c8;margin:18px 0">
+  <hr style="border:0;border-top:1px solid #ead8c8;margin:16px 0">
   <button id="randomBtn" class="pink">🎲 ランダムマッチ</button>
  </div>
  <div id="waitingArea" class="hidden">
   <p>🌴 招待コードを友達に教えてね！</p>
   <div id="roomCode"></div>
-  <p class="small">相手が参加すると対戦が始まるよ</p>
+  <p class="small">相手が参加するまで待ってね</p>
+  <button id="copyBtn" class="secondary">コードをコピー</button>
  </div>
 </div>
 
 <div id="gameArea" class="hidden">
  <div class="panel">
   <div class="topline">
-   <div class="player-card">
-    <div class="player-icon">🦀</div>
+   <div class="player-card" id="card0">
+    <img id="avatar0" alt="カニ">
     <div id="player0">PLAYER 1</div>
     <b id="p0">0 / 30</b>
    </div>
-   <div class="player-card">
-    <div class="player-icon">🐙</div>
+   <div class="player-card" id="card1">
+    <img id="avatar1" alt="タコ">
     <div id="player1">PLAYER 2</div>
     <b id="p1">0 / 30</b>
    </div>
@@ -115,9 +156,14 @@ button.green{background:#83b99b;border-color:#83b99b}
  </div>
 
  <div class="panel">
-  <h3>🌴 ISLAND BOARD 🌴</h3>
-  <div class="board" id="board"></div>
-  <p class="small">🏝️ 30マスのゴールを目指そう！</p>
+  <h3>🌴 ISLAND ADVENTURE 🌴</h3>
+  <div id="boardWrap">
+   <div class="island-deco palm1">🌴</div>
+   <div class="island-deco palm2">🌴</div>
+   <div class="island-deco shell">🐚</div>
+   <div class="board" id="board"></div>
+  </div>
+  <p class="small">STARTからGOALまで進もう！</p>
  </div>
 
  <div class="panel">
@@ -125,18 +171,27 @@ button.green{background:#83b99b;border-color:#83b99b}
   <div id="timer" class="timer">10</div>
   <div class="small" id="timerLabel">残り時間</div>
   <div class="dice" id="dice">🎲</div>
+  <div id="privateRoll" class="small"></div>
   <div id="message">ゲーム開始！</div>
 
-  <div id="rollArea">
+  <div id="rollArea" class="hidden">
    <button id="rollBtn">🎲 サイコロを振る</button>
   </div>
+
   <div id="declareArea" class="hidden">
-   <p>出目を宣言してね！</p>
-   <button id="truthBtn">本当の出目</button>
-   <button id="lieBtn" class="pink">🤥 嘘の出目</button>
+   <p>宣言する数字を自由に選んでね！</p>
+   <div id="numberChoices">
+    <button class="number" data-number="1">1</button>
+    <button class="number" data-number="2">2</button>
+    <button class="number" data-number="3">3</button>
+    <button class="number" data-number="4">4</button>
+    <button class="number" data-number="5">5</button>
+    <button class="number" data-number="6">6</button>
+   </div>
   </div>
+
   <div id="challengeArea" class="hidden">
-   <p>宣言を信じる？</p>
+   <p>相手の宣言を信じる？</p>
    <button id="doubtBtn" class="pink">⚡ ダウト！</button>
    <button id="believeBtn" class="green">信じる</button>
   </div>
@@ -148,6 +203,7 @@ button.green{background:#83b99b;border-color:#83b99b}
  <button id="backBtn" class="secondary">タイトルに戻る</button>
  <p class="small">オンライン対戦 / 2人用</p>
 </div>
+<footer>ISLAND ADVENTURE · LIAR DICE</footer>
 </main>
 
 <script>
@@ -157,33 +213,70 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let user=null,room=null,myIndex=-1,game=null,channel=null;
 let poller=null,timerLoop=null,busy=false,rolling=false;
+let ownRoll=null,timeoutBusy=false;
 const $=id=>document.getElementById(id);
-const symbols=["","⚀","⚁","⚂","⚃","⚄","⚅"];
 const icons=["🦀","🐙"];
 const PHASE_TIME=10;
+const ROOM_KEY="liar_dice_room";
 
 function say(t){$("status").textContent=t}
-function name(){return $("playerName").value.trim().slice(0,12)||"プレイヤー"}
+function playerName(){
+ return $("playerName").value.trim().slice(0,12)||"プレイヤー";
+}
 function show(id,yes){$(id).classList.toggle("hidden",!yes)}
-function newDeadline(){return Date.now()+PHASE_TIME*1000}
+function deadline(){return Date.now()+PHASE_TIME*1000}
 
-function initialGame(hostName){
+function avatarSvg(type){
+ if(type==="crab"){
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <g stroke="#9b384b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M25 48L9 36 7 20M75 48L91 36 93 20" fill="none"/>
+  <path d="M12 20Q0 5 15 5Q30 6 22 23M88 20Q100 5 85 5Q70 6 78 23" fill="#f08a91"/>
+  <path d="M29 68L18 83M43 72L38 89M57 72L62 89M71 68L82 83" fill="none"/>
+  <ellipse cx="50" cy="56" rx="34" ry="26" fill="#ed777f"/>
+  <path d="M30 38Q30 18 42 25Q50 12 58 25Q70 18 70 38" fill="#ffb4a9"/>
+  <ellipse cx="39" cy="46" rx="7" ry="9" fill="white"/>
+  <ellipse cx="61" cy="46" rx="7" ry="9" fill="white"/>
+  <circle cx="40" cy="47" r="3" fill="#493c48" stroke="none"/>
+  <circle cx="60" cy="47" r="3" fill="#493c48" stroke="none"/>
+  <path d="M44 61Q50 67 56 61" fill="none"/>
+  </g></svg>`;
+ }
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+ <g stroke="#a34f91" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+ <path d="M23 61Q8 67 13 82Q17 94 29 83L34 72M38 70Q25 83 34 92Q43 98 49 82L51 72M57 72Q52 89 65 93Q77 94 70 72M70 65Q87 69 87 83Q86 94 75 84" fill="#ee9bd1"/>
+ <path d="M18 49Q14 17 50 13Q86 17 82 49Q82 73 50 76Q18 73 18 49Z" fill="#e987c5"/>
+ <ellipse cx="39" cy="43" rx="7" ry="9" fill="white"/>
+ <ellipse cx="61" cy="43" rx="7" ry="9" fill="white"/>
+ <circle cx="40" cy="44" r="3" fill="#493c48" stroke="none"/>
+ <circle cx="60" cy="44" r="3" fill="#493c48" stroke="none"/>
+ <path d="M44 57Q50 63 56 57" fill="none"/>
+ <circle cx="28" cy="54" r="5" fill="#f6b3d6" stroke="none"/>
+ <circle cx="72" cy="54" r="5" fill="#f6b3d6" stroke="none"/>
+ </g></svg>`;
+}
+function svgData(s){return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(s)}
+$("avatar0").src=svgData(avatarSvg("crab"));
+$("avatar1").src=svgData(avatarSvg("octopus"));
+
+function initialGame(host){
  return {
-  players:[hostName,"プレイヤー2"],
-  pos:[0,0],turn:0,phase:"roll",
-  real:null,claim:null,claimant:null,
-  finished:false,winner:null,
-  message:"ゲーム開始！",
-  deadline:null
+  players:[host,"プレイヤー2"],pos:[0,0],turn:0,phase:"roll",
+  real:null,claim:null,claimant:null,finished:false,winner:null,
+  message:"ゲーム開始！",deadline:null
  };
 }
-function makeCode(){return Math.random().toString(36).substring(2,8).toUpperCase()}
+function makeCode(){
+ return Math.random().toString(36).substring(2,8).toUpperCase();
+}
 
 async function connect(){
  try{
   const r=await db.auth.signInAnonymously();
   if(r.error)throw r.error;
-  user=r.data.user;say("接続しました！");
+  user=r.data.user;
+  say("接続しました！");
+  await restoreRoom();
  }catch(e){
   say("接続エラー："+e.message);
   ["createBtn","joinBtn","randomBtn"].forEach(id=>$(id).disabled=true);
@@ -191,66 +284,94 @@ async function connect(){
 }
 connect();
 
+async function restoreRoom(){
+ const id=localStorage.getItem(ROOM_KEY);
+ if(!id)return;
+ const r=await db.from("game_rooms").select("*").eq("id",id).maybeSingle();
+ if(r.error||!r.data)return;
+ const row=r.data;
+ if(row.host_id===user.id)myIndex=0;
+ else if(row.guest_id===user.id)myIndex=1;
+ else return;
+ room=row;game=row.game_state;
+ if(row.status==="waiting"){
+  show("loginArea",false);show("waitingArea",true);
+  $("roomCode").textContent=row.code;
+ }else if(row.status==="playing"){
+  show("loginArea",false);show("waitingArea",false);show("gameArea",true);
+  await loadOwnSecret();
+ }
+ startSync();
+ render();
+}
+
 async function createRoom(isRandom=false){
- if(!user)return alert("まだ接続中だよ。少し待ってね！");
+ if(!user)return alert("接続中だよ。少し待ってね！");
  if(busy)return;
  busy=true;say("ルームを作成中...");
  try{
   let created=null;
   for(let i=0;i<5;i++){
-   const code=makeCode();
    const r=await db.from("game_rooms").insert({
-    code,host_id:user.id,status:"waiting",
-    game_state:initialGame(name())
+    code:makeCode(),host_id:user.id,status:"waiting",
+    game_state:initialGame(playerName())
    }).select().single();
    if(!r.error){created=r.data;break}
    if(!String(r.error.message).toLowerCase().includes("duplicate"))throw r.error;
   }
-  if(!created)throw new Error("ルームを作成できませんでした。");
-  room=created;myIndex=0;game=created.game_state;
+  if(!created)throw new Error("ルームを作成できませんでした");
+  room=created;myIndex=0;game=created.game_state;ownRoll=null;
+  localStorage.setItem(ROOM_KEY,room.id);
   show("loginArea",false);show("waitingArea",true);
   $("roomCode").textContent=created.code;
   say(isRandom?"対戦相手を探しています...":"ルームを作ったよ！");
   startSync();
- }catch(e){say("エラー："+e.message);alert("ルーム作成エラー："+e.message)}
- finally{busy=false}
+ }catch(e){
+  say("エラー："+e.message);alert(e.message);
+ }finally{busy=false}
 }
 
 async function joinRoom(code){
- if(!user)return alert("まだ接続中だよ。少し待ってね！");
+ if(!user)return alert("接続中だよ。少し待ってね！");
  if(busy)return;
- busy=true;say("ルームを探しています...");
+ busy=true;say("部屋に参加しています...");
  try{
-  const f=await db.from("game_rooms").select("*")
-   .eq("code",code).eq("status","waiting").is("guest_id",null).maybeSingle();
-  if(f.error)throw f.error;
-  if(!f.data)throw new Error("部屋が見つからないよ。コードを確認してね。");
-  const g=f.data.game_state||initialGame("プレイヤー1");
-  g.players[1]=name();
-  g.deadline=newDeadline();
-  const joined=await db.from("game_rooms").update({
-   guest_id:user.id,status:"playing",game_state:g
-  }).eq("id",f.data.id).is("guest_id",null).select().maybeSingle();
-  if(joined.error)throw joined.error;
-  if(!joined.data)throw new Error("ほかの人が先に参加したみたい。");
-  room=joined.data;myIndex=1;game=room.game_state;
+  const r=await db.rpc("join_room_by_code",{
+   p_code:code,p_player_name:playerName()
+  });
+  if(r.error)throw r.error;
+  const joined=Array.isArray(r.data)?r.data[0]:r.data;
+  if(!joined)throw new Error("部屋が見つからないか、満員です");
+  room=joined;game=joined.game_state;myIndex=1;ownRoll=null;
+  localStorage.setItem(ROOM_KEY,room.id);
   show("loginArea",false);show("waitingArea",false);show("gameArea",true);
   startSync();render();
- }catch(e){say("参加できませんでした");alert(e.message)}
- finally{busy=false}
+ }catch(e){
+  say("参加できませんでした");alert(e.message);
+ }finally{busy=false}
 }
 
 async function randomMatch(){
- if(!user)return alert("まだ接続中だよ。少し待ってね！");
- say("対戦相手を探しています...");
+ if(!user)return alert("接続中だよ。少し待ってね！");
+ if(busy)return;
+ busy=true;say("対戦相手を探しています...");
  try{
-  const f=await db.from("game_rooms").select("*")
-   .eq("status","waiting").is("guest_id",null)
-   .neq("host_id",user.id).limit(1).maybeSingle();
-  if(f.error)throw f.error;
-  if(f.data)await joinRoom(f.data.code);
-  else await createRoom(true);
- }catch(e){say("エラー："+e.message);alert(e.message)}
+  const r=await db.rpc("join_random_room",{p_player_name:playerName()});
+  if(r.error)throw r.error;
+  const joined=Array.isArray(r.data)?r.data[0]:r.data;
+  if(joined){
+   room=joined;game=joined.game_state;myIndex=1;ownRoll=null;
+   localStorage.setItem(ROOM_KEY,room.id);
+   show("loginArea",false);show("waitingArea",false);show("gameArea",true);
+   startSync();render();
+  }else{
+   busy=false;
+   await createRoom(true);
+   return;
+  }
+ }catch(e){
+  say("エラー："+e.message);alert(e.message);
+ }finally{busy=false}
 }
 
 async function startSync(){
@@ -267,16 +388,18 @@ async function startSync(){
  if(poller)clearInterval(poller);
  poller=setInterval(refresh,1200);
  if(timerLoop)clearInterval(timerLoop);
- timerLoop=setInterval(tick,200);
+ timerLoop=setInterval(tick,250);
 }
 
 function receive(row){
- if(!row)return;
+ if(!row||!room||row.id!==room.id)return;
  room=row;
  if(row.status==="playing"){
   game=row.game_state;
   show("waitingArea",false);show("gameArea",true);
   render();
+ }else if(row.status==="expired"){
+  say("待機部屋の有効期限が切れました");
  }
 }
 async function refresh(){
@@ -285,56 +408,82 @@ async function refresh(){
  if(!r.error&&r.data)receive(r.data);
 }
 
-async function saveGame(next,expectedDeadline=null){
- if(!room||busy)return false;
+async function loadOwnSecret(){
+ if(!room||myIndex<0)return;
+ const r=await db.from("game_secrets").select("real_roll")
+  .eq("room_id",room.id).maybeSingle();
+ if(!r.error&&r.data)ownRoll=r.data.real_roll;
+ else ownRoll=null;
+ render();
+}
+
+async function action(type,value=null){
+ if(!room||busy)return;
  busy=true;
  try{
-  let q=db.from("game_rooms").update({game_state:next}).eq("id",room.id);
-  if(expectedDeadline!==null)
-   q=q.eq("game_state->>deadline",String(expectedDeadline));
-  const r=await q.select().maybeSingle();
+  const r=await db.rpc("game_action",{
+   p_room_id:room.id,p_action:type,p_value:value
+  });
   if(r.error)throw r.error;
-  if(!r.data){await refresh();return false}
-  receive(r.data);return true;
- }catch(e){alert("保存エラー："+e.message);return false}
- finally{busy=false}
+  if(type==="roll"){
+   await loadOwnSecret();
+  }
+  await refresh();
+ }catch(e){
+  if(!String(e.message).includes("時間切れ")&&
+     !String(e.message).includes("まだ時間切れ")&&
+     !String(e.message).includes("今は"))
+    say("操作エラー："+e.message);
+  await refresh();
+ }finally{busy=false}
 }
 
 function render(){
- if(!game)return;
- $("player0").textContent=game.players[0];
- $("player1").textContent=game.players[1];
- $("p0").textContent=game.pos[0]+" / 30";
- $("p1").textContent=game.pos[1]+" / 30";
+ if(!game||myIndex<0)return;
+ $("player0").textContent=game.players[0]||"PLAYER 1";
+ $("player1").textContent=game.players[1]||"PLAYER 2";
+ $("p0").textContent=(game.pos[0]||0)+" / 30";
+ $("p1").textContent=(game.pos[1]||0)+" / 30";
+ $("card0").classList.toggle("active",game.turn===0&&!game.finished);
+ $("card1").classList.toggle("active",game.turn===1&&!game.finished);
 
  const board=$("board");board.innerHTML="";
  for(let i=0;i<=30;i++){
-  const c=document.createElement("div");
-  c.className="cell";
+  const c=document.createElement("div");c.className="cell";
   if(i===0)c.classList.add("start");
   if(i===30)c.classList.add("goal");
   if(game.pos[0]===i)c.classList.add("me");
   if(game.pos[1]===i)c.classList.add("enemy");
-  const tokens=[];
-  if(game.pos[0]===i)tokens.push("🦀");
-  if(game.pos[1]===i)tokens.push("🐙");
-  const token=document.createElement("div");
-  token.className="tokens";token.textContent=tokens.join("");
-  const num=document.createElement("div");
-  num.className="number";
+  const tokens=document.createElement("div");tokens.className="tokens";
+  if(game.pos[0]===i){
+   const img=document.createElement("img");img.src=$("avatar0").src;img.alt="カニ";tokens.append(img);
+  }
+  if(game.pos[1]===i){
+   const img=document.createElement("img");img.src=$("avatar1").src;img.alt="タコ";tokens.append(img);
+  }
+  const num=document.createElement("div");num.className="number";
   num.textContent=i===0?"START":i===30?"GOAL":i;
-  c.append(token,num);board.appendChild(c);
+  c.append(tokens,num);board.append(c);
  }
 
- $("turn").textContent=game.finished?"🏆 GAME FINISHED":
-  icons[game.turn]+" "+game.players[game.turn]+" のターン";
- $("dice").textContent=game.claim===null?"🎲":symbols[game.claim];
+ $("turn").textContent=game.finished?
+  "🏆 GAME FINISHED":icons[game.turn]+" "+game.players[game.turn]+" のターン";
  $("message").textContent=game.message||"";
+ const mine=game.turn===myIndex&&!game.finished;
+ show("rollArea",mine&&game.phase==="roll");
+ show("declareArea",mine&&game.phase==="declare");
+ show("challengeArea",!mine&&game.phase==="challenge"&&!game.finished);
 
- const myTurn=game.turn===myIndex;
- show("rollArea",!game.finished&&game.phase==="roll"&&myTurn);
- show("declareArea",!game.finished&&game.phase==="declare"&&myTurn);
- show("challengeArea",!game.finished&&game.phase==="challenge"&&!myTurn);
+ if(game.phase==="declare"&&game.claimant===myIndex&&ownRoll!==null){
+  $("dice").textContent=["","⚀","⚁","⚂","⚃","⚄","⚅"][ownRoll];
+  $("privateRoll").textContent="🔒 あなただけに見えている本当の出目";
+ }else if(game.phase==="challenge"&&game.claim!==null){
+  $("dice").textContent=["","⚀","⚁","⚂","⚃","⚄","⚅"][game.claim];
+  $("privateRoll").textContent="相手の宣言した数字";
+ }else{
+  $("dice").textContent="🎲";
+  $("privateRoll").textContent="";
+ }
  tick();
 }
 
@@ -342,166 +491,91 @@ function tick(){
  if(!game||game.finished||!game.deadline){
   $("timer").textContent="--";return;
  }
- const left=Math.max(0,Math.ceil((game.deadline-Date.now())/1000));
+ const left=Math.max(0,Math.ceil((Number(game.deadline)-Date.now())/1000));
  $("timer").textContent=left;
  $("timer").classList.toggle("danger",left<=3);
  $("timerLabel").textContent=
   game.phase==="roll"?"サイコロを振るまで":
-  game.phase==="declare"?"出目を宣言するまで":"ダウト・信じるの判断";
- if(left===0)handleTimeout();
-}
-
-function endTurn(next,message){
- next.turn=1-next.turn;
- next.phase="roll";
- next.real=null;next.claim=null;next.claimant=null;
- next.deadline=newDeadline();
- next.message=message;
-}
-
-function finishRound(next,message){
- next.pos[0]=Math.min(30,next.pos[0]);
- next.pos[1]=Math.min(30,next.pos[1]);
- if(next.pos[0]>=30||next.pos[1]>=30){
-  next.finished=true;
-  next.winner=next.pos[0]>=30?0:1;
-  next.message="🏆 "+next.players[next.winner]+" の勝利！！";
-  next.deadline=null;
- }else{
-  endTurn(next,message);
+  game.phase==="declare"?"宣言するまで":"ダウト・信じるの判断";
+ if(left===0&&!timeoutBusy&&!busy){
+  timeoutBusy=true;
+  action("timeout").finally(()=>{timeoutBusy=false});
  }
-}
-
-let timeoutRunning=false;
-async function handleTimeout(){
- if(timeoutRunning||busy||!game||game.finished||!game.deadline)return;
- if(Date.now()<game.deadline)return;
- timeoutRunning=true;
- const oldDeadline=game.deadline;
- const next=JSON.parse(JSON.stringify(game));
- if(next.phase==="roll"){
-  endTurn(next,"⌛ 時間切れ！ターン交代！");
- }else if(next.phase==="declare"){
-  endTurn(next,"⌛ 宣言時間切れ！ターン交代！");
- }else if(next.phase==="challenge"){
-  const declarer=next.claimant;
-  next.pos[declarer]+=next.claim;
-  finishRound(next,"⌛ 判断時間切れ！宣言を信じた扱いになったよ！");
- }
- await saveGame(next,oldDeadline);
- timeoutRunning=false;
 }
 
 async function rollDice(){
- if(!game||game.phase!=="roll"||game.turn!==myIndex||busy||rolling)return;
- rolling=true;
- $("rollBtn").disabled=true;
+ if(rolling||busy||!game||game.phase!=="roll"||game.turn!==myIndex)return;
+ rolling=true;$("rollBtn").disabled=true;
  $("dice").classList.add("rolling");
  let count=0;
  const anim=setInterval(()=>{
-  $("dice").textContent=symbols[1+Math.floor(Math.random()*6)];
+  $("dice").textContent=["","⚀","⚁","⚂","⚃","⚄","⚅"][1+Math.floor(Math.random()*6)];
   count++;
-  if(count>=10){
-   clearInterval(anim);
-   $("dice").classList.remove("rolling");
-   rolling=false;
-   $("rollBtn").disabled=false;
-   const next={...game};
-   next.real=1+Math.floor(Math.random()*6);
-   next.claim=null;next.claimant=myIndex;
-   next.phase="declare";next.deadline=newDeadline();
-   next.message="出目を宣言してね！";
-   $("dice").textContent=symbols[next.real];
-   saveGame(next);
+  if(count>=12){
+   clearInterval(anim);$("dice").classList.remove("rolling");
+   rolling=false;$("rollBtn").disabled=false;
+   action("roll");
   }
- },70);
+ },65);
 }
 
-async function declare(isTruth){
- if(!game||game.phase!=="declare"||game.turn!==myIndex||busy)return;
- const next=JSON.parse(JSON.stringify(game));
- let value=next.real;
- if(!isTruth){
-  const choices=[1,2,3,4,5,6].filter(n=>n!==next.real);
-  value=choices[Math.floor(Math.random()*choices.length)];
- }
- next.claim=value;next.phase="challenge";next.deadline=newDeadline();
- next.message=next.players[myIndex]+" は "+value+" と宣言した！";
- await saveGame(next);
-}
+document.querySelectorAll("[data-number]").forEach(btn=>{
+ btn.addEventListener("click",()=>{
+  const n=Number(btn.dataset.number);
+  if(game&&game.phase==="declare"&&game.turn===myIndex)action("declare",n);
+ });
+});
+$("createBtn").onclick=()=>createRoom(false);
+$("joinBtn").onclick=()=>joinRoom($("joinCode").value.trim().toUpperCase());
+$("randomBtn").onclick=randomMatch;
+$("rollBtn").onclick=rollDice;
+$("doubtBtn").onclick=()=>action("doubt");
+$("believeBtn").onclick=()=>action("believe");
+$("copyBtn").onclick=async()=>{
+ try{await navigator.clipboard.writeText(room.code);say("招待コードをコピーしたよ！")}
+ catch(e){say("招待コード："+room.code)}
+};
+$("joinCode").addEventListener("input",e=>{
+ e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+});
 
-async function challenge(doubt){
- if(!game||game.phase!=="challenge"||game.turn===myIndex||busy)return;
- const next=JSON.parse(JSON.stringify(game));
- const declarer=next.claimant;
- const challenger=1-declarer;
- if(doubt){
-  if(next.claim!==next.real){
-   next.pos[challenger]++;
-   finishRound(next,"🎉 ダウト成功！嘘を見破った！");
-  }else{
-   next.pos[declarer]++;
-   finishRound(next,"💦 ダウト失敗！本当だった！");
-  }
- }else{
-  next.pos[declarer]+=next.claim;
-  finishRound(next,"信じた！ "+next.claim+" マス進む！");
- }
- await saveGame(next);
-}
-
-/* BGM: オリジナルの簡単な電子音メロディ */
+/* オリジナルBGM */
 let audioCtx=null,bgmTimer=null,bgmOn=false,noteIndex=0;
 const melody=[523,659,784,659,587,698,880,698,523,659,784,1046];
 function playNote(){
  if(!audioCtx||!bgmOn)return;
- const osc=audioCtx.createOscillator();
- const gain=audioCtx.createGain();
- osc.type="sine";
- osc.frequency.value=melody[noteIndex%melody.length];
+ const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+ osc.type="sine";osc.frequency.value=melody[noteIndex++%melody.length];
  gain.gain.setValueAtTime(.0001,audioCtx.currentTime);
- gain.gain.exponentialRampToValueAtTime(.045,audioCtx.currentTime+.04);
+ gain.gain.exponentialRampToValueAtTime(.035,audioCtx.currentTime+.04);
  gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.28);
  osc.connect(gain);gain.connect(audioCtx.destination);
  osc.start();osc.stop(audioCtx.currentTime+.3);
- noteIndex++;
 }
 async function toggleBgm(){
  try{
-  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   if(audioCtx.state==="suspended")await audioCtx.resume();
   bgmOn=!bgmOn;
   if(bgmOn){
    playNote();bgmTimer=setInterval(playNote,330);
    $("bgmBtn").textContent="🔇 BGM OFF";
   }else{
-   clearInterval(bgmTimer);
-   $("bgmBtn").textContent="🎵 BGM ON";
+   clearInterval(bgmTimer);$("bgmBtn").textContent="🎵 BGM ON";
   }
- }catch(e){alert("この端末ではBGMを再生できませんでした。")}
+ }catch(e){alert("この端末ではBGMを再生できませんでした")}
 }
-
-$("createBtn").onclick=()=>createRoom(false);
-$("joinBtn").onclick=()=>joinRoom($("joinCode").value.trim().toUpperCase());
-$("randomBtn").onclick=randomMatch;
-$("rollBtn").onclick=rollDice;
-$("truthBtn").onclick=()=>declare(true);
-$("lieBtn").onclick=()=>declare(false);
-$("doubtBtn").onclick=()=>challenge(true);
-$("believeBtn").onclick=()=>challenge(false);
 $("bgmBtn").onclick=toggleBgm;
 
-$("joinCode").addEventListener("input",e=>{
- e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");
-});
 $("backBtn").onclick=async()=>{
  if(poller)clearInterval(poller);
  if(timerLoop)clearInterval(timerLoop);
  if(channel)await db.removeChannel(channel);
  if(bgmTimer)clearInterval(bgmTimer);
- bgmOn=false;$("bgmBtn").textContent="🎵 BGM ON";
- room=null;game=null;myIndex=-1;
+ room=null;game=null;myIndex=-1;ownRoll=null;
+ localStorage.removeItem(ROOM_KEY);
  show("loginArea",true);show("waitingArea",false);show("gameArea",false);
+ bgmOn=false;$("bgmBtn").textContent="🎵 BGM ON";
  say("タイトルに戻りました");
 };
 document.addEventListener("visibilitychange",()=>{
