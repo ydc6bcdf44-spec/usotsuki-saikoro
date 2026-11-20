@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -133,7 +132,6 @@ footer{font-size:11px;color:#8f8177;margin:14px}
      <path d="M160 210 Q205 135 300 150 Q410 125 460 215 Q495 290 420 345 Q340 405 220 355 Q120 315 160 210Z" fill="#a9d89b"/>
      <path d="M215 230 Q260 175 325 195 Q390 185 415 250 Q430 310 350 330 Q260 350 205 295Z" fill="#8fc98a"/>
      <path d="M248 250 Q290 215 345 245 Q380 275 350 310 Q295 330 250 295Z" fill="#78b981"/>
-     <!-- palm trees -->
      <g stroke="#8b6548" stroke-width="10" stroke-linecap="round" fill="none">
       <path d="M210 230 Q205 190 225 160"/><path d="M390 280 Q410 235 400 205"/>
      </g>
@@ -166,18 +164,11 @@ footer{font-size:11px;color:#8f8177;margin:14px}
     <button id="setupRollBtn">先攻決めのサイコロを振る</button>
    </div>
 
-   <div id="rollArea" class="hidden">
-    <button id="rollBtn">🎲 サイコロを振る</button>
-   </div>
+   <div id="rollArea" class="hidden"><button id="rollBtn">🎲 サイコロを振る</button></div>
    <div id="declareArea" class="hidden">
     <p>宣言する数字を自由に選んでね！</p>
     <div id="numberChoices">
-     <button class="number" data-number="1">1</button>
-     <button class="number" data-number="2">2</button>
-     <button class="number" data-number="3">3</button>
-     <button class="number" data-number="4">4</button>
-     <button class="number" data-number="5">5</button>
-     <button class="number" data-number="6">6</button>
+     <button class="number" data-number="1">1</button><button class="number" data-number="2">2</button><button class="number" data-number="3">3</button><button class="number" data-number="4">4</button><button class="number" data-number="5">5</button><button class="number" data-number="6">6</button>
     </div>
    </div>
    <div id="challengeArea" class="hidden">
@@ -214,10 +205,9 @@ let user=null,room=null,myIndex=-1,game=null,channel=null;
 let poller=null,timerLoop=null,busy=false,rolling=false;
 let ownRoll=null,timeoutBusy=false;
 let setupSubmittedAttempt=-1,setupAutoAttempt=-1;
-let matchBannerShownFor=null;
+let matchBannerShownFor=null,matchBannerTimer=null;
 const $=id=>document.getElementById(id);
 const icons=["🦀","🐙"];
-const PHASE_TIME=10;
 const ROOM_KEY="liar_dice_room";
 const diceFaces=["","⚀","⚁","⚂","⚃","⚄","⚅"];
 
@@ -324,30 +314,41 @@ async function randomMatch(){
  finally{busy=false}
 }
 
+/* 同期処理 */
 async function startSync(){
  show("waitingArea",room.status==="waiting");
  show("gameArea",room.status==="playing");
  if(room.status==="waiting")$("roomCode").textContent=room.code;
+
  if(channel)await db.removeChannel(channel);
  channel=db.channel("room-"+room.id)
   .on("postgres_changes",{event:"UPDATE",schema:"public",table:"game_rooms",filter:"id=eq."+room.id},p=>receive(p.new))
   .subscribe();
+
  if(poller)clearInterval(poller);
  poller=setInterval(refresh,900);
  if(timerLoop)clearInterval(timerLoop);
  timerLoop=setInterval(tick,250);
+
+ // 参加した側も、すでに対戦中ならマッチ成立演出を確認する
+ if(room.status==="playing"&&game&&game.phase==="setup"){
+  showMatchBanner();
+ }
 }
 
 function receive(row){
  if(!row||!room||row.id!==room.id)return;
- const wasPlaying=room.status==="playing";
  room=row;
+
  if(row.status==="playing"){
   game=row.game_state;
   show("waitingArea",false);show("gameArea",true);
-  if(!wasPlaying&&game.phase==="setup")showMatchBanner();
+
+  if(game.phase==="setup")showMatchBanner();
   render();
- }else if(row.status==="expired"){say("待機部屋の有効期限が切れました")}
+ }else if(row.status==="expired"){
+  say("待機部屋の有効期限が切れました");
+ }
 }
 async function refresh(){
  if(!room)return;
@@ -360,14 +361,30 @@ async function loadOwnSecret(){
  if(!r.error&&r.data)ownRoll=r.data.real_roll;else ownRoll=null;
 }
 
+/* マッチ成立演出：成立から3秒以内だけ表示 */
 function showMatchBanner(){
- const key=room.id+":"+(game.matchFoundAt||"");
+ if(!room||!game)return;
+
+ const started=Number(game.matchFoundAt||0);
+ const key=room.id+":"+started;
+
  if(matchBannerShownFor===key)return;
+
+ // マッチ成立から3秒以上経過していたら再表示しない
+ if(started&&Date.now()-started>=3000)return;
+
  matchBannerShownFor=key;
  $("bannerTitle").textContent="対戦相手が見つかりました！";
  $("bannerText").textContent="3秒後に先攻を決めるよ！";
  show("matchBanner",true);
- setTimeout(()=>{show("matchBanner",false);render()},3000);
+
+ if(matchBannerTimer)clearTimeout(matchBannerTimer);
+ const remaining=started?Math.max(0,3000-(Date.now()-started)):3000;
+
+ matchBannerTimer=setTimeout(()=>{
+  show("matchBanner",false);
+  render();
+ },remaining);
 }
 
 async function submitSetupRoll(){
@@ -375,11 +392,13 @@ async function submitSetupRoll(){
  const attempt=Number(game.setupAttempt||0);
  if(Date.now()<Number(game.matchFoundAt||0)+3000)return;
  if(setupSubmittedAttempt===attempt)return;
+
  busy=true;$("setupRollBtn").disabled=true;
  const roll=1+Math.floor(Math.random()*6);
  $("dice").textContent=diceFaces[roll];
  $("dice").classList.add("rolling");
  $("setupHint").textContent="相手のサイコロを待っています...";
+
  try{
   const r=await db.rpc("submit_start_roll",{p_room_id:room.id,p_roll:roll});
   if(r.error)throw r.error;
@@ -433,9 +452,11 @@ function drawBoard(){
   if(i===30)c.classList.add("goal");
   if(game.pos[0]===i)c.classList.add("me");
   if(game.pos[1]===i)c.classList.add("enemy");
+
   const tokens=document.createElement("div");tokens.className="tokens";
   if(game.pos[0]===i){const img=document.createElement("img");img.src=$("avatar0").src;img.alt="カニ";tokens.append(img)}
   if(game.pos[1]===i){const img=document.createElement("img");img.src=$("avatar1").src;img.alt="タコ";tokens.append(img)}
+
   const num=document.createElement("div");num.className="number";
   num.textContent=i===0?"START":i===30?"GOAL":i;
   c.append(tokens,num);board.append(c);
@@ -457,6 +478,7 @@ function render(){
  show("rollArea",!setup&&game.phase==="roll"&&game.turn===myIndex&&!game.finished);
  show("declareArea",!setup&&game.phase==="declare"&&game.turn===myIndex&&!game.finished);
  show("challengeArea",!setup&&game.phase==="challenge"&&game.turn!==myIndex&&!game.finished);
+
  $("turn").textContent=setup?"🎲 先攻決め":game.finished?"🏆 GAME FINISHED":icons[game.turn]+" "+game.players[game.turn]+" のターン";
  $("message").textContent=game.message||"";
 
@@ -553,6 +575,7 @@ $("backBtn").onclick=async()=>{
  if(timerLoop)clearInterval(timerLoop);
  if(channel)await db.removeChannel(channel);
  if(bgmTimer)clearInterval(bgmTimer);
+ if(matchBannerTimer)clearTimeout(matchBannerTimer);
  room=null;game=null;myIndex=-1;ownRoll=null;
  setupSubmittedAttempt=-1;setupAutoAttempt=-1;matchBannerShownFor=null;
  localStorage.removeItem(ROOM_KEY);
