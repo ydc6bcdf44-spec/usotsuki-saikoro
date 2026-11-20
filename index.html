@@ -9,63 +9,90 @@
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;padding:18px;background:#f6eaff;color:#594568;
- font-family:monospace;text-align:center
+ margin:0;padding:16px;background:#fff3dc;color:#655044;
+ font-family:monospace;text-align:center;
+ background-image:radial-gradient(#f8dfb6 1px,transparent 1px);
+ background-size:18px 18px
 }
 main{max-width:520px;margin:auto}
-h1{color:#a66bc2;font-size:28px}
+h1{color:#d17d87;font-size:27px}
 p{line-height:1.7}
 .panel{
- background:white;border:3px solid #e4c7f3;border-radius:16px;
- padding:16px;margin:14px 0;box-shadow:0 4px 0 #ddc1eb
+ background:#fffdf6;border:3px solid #e9c99b;border-radius:18px;
+ padding:15px;margin:14px 0;box-shadow:0 4px 0 #dfbd91
 }
 input{
- width:100%;padding:13px;margin:7px 0;border:2px solid #dfc3ee;
+ width:100%;padding:13px;margin:7px 0;border:2px solid #e9c99b;
  border-radius:10px;font-size:16px;text-align:center
 }
 button{
- border:2px solid #dfc3ee;border-radius:10px;padding:12px;
- font-size:15px;margin:5px;background:#bd8bd3;color:white;
+ border:2px solid #e9c99b;border-radius:12px;padding:12px;
+ font-size:15px;margin:5px;background:#d98c9b;color:white;
  font-weight:bold;cursor:pointer
 }
 button:disabled{opacity:.4;cursor:not-allowed}
-button.secondary{background:#e9d8f3;color:#684b7c}
-button.pink{background:#e9a9c9;border-color:#e9a9c9}
-.small{font-size:12px;color:#917da0}
-#status{min-height:24px;color:#9565ad;font-weight:bold}
-#roomCode{font-size:30px;letter-spacing:5px;color:#a66bc2;font-weight:bold}
+button.secondary{background:#f1dfc2;color:#765b46}
+button.pink{background:#e9a0bb;border-color:#e9a0bb}
+button.green{background:#83b99b;border-color:#83b99b}
+.small{font-size:12px;color:#a28a72}
+#status{min-height:24px;color:#b77c80;font-weight:bold}
+#roomCode{font-size:30px;letter-spacing:5px;color:#c8798b;font-weight:bold}
 .board{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
 .cell{
- background:#f0e2f8;border:2px solid #dfc6ed;border-radius:7px;
- padding:9px 2px;font-size:12px;min-height:39px
+ background:#dff0d2;border:2px solid #b5d5a6;border-radius:9px;
+ padding:7px 2px;font-size:12px;min-height:52px;
+ display:flex;flex-direction:column;justify-content:center;align-items:center;
+ gap:2px
 }
-.me{background:#c8a1e4}
-.enemy{background:#f5b9d2}
-.dice{font-size:65px;margin:10px}
+.cell:nth-child(3n){background:#e6f2c9}
+.cell:nth-child(4n){background:#d7eddf}
+.cell.me{background:#ffd7d9;border-color:#e8a2aa}
+.cell.enemy{background:#e8d6ff;border-color:#c6a7e8}
+.cell.goal{background:#ffe49c;border-color:#e8bd62}
+.cell.start{background:#b9e4d0}
+.tokens{font-size:17px;line-height:1.2}
+.number{font-size:10px;color:#806d5c}
+.dice{font-size:68px;margin:10px;min-height:80px}
+.dice.rolling{animation:shake .12s infinite}
+@keyframes shake{
+ 0%{transform:rotate(-12deg) scale(1.05)}
+ 50%{transform:rotate(12deg) scale(.95)}
+ 100%{transform:rotate(-12deg) scale(1.05)}
+}
 .hidden{display:none!important}
 #message{min-height:48px;line-height:1.7}
+.timer{
+ font-size:30px;font-weight:bold;color:#d27c85;
+ background:#fff0e6;border-radius:12px;padding:8px;margin:8px auto;
+ max-width:150px
+}
+.timer.danger{color:#e34d62;animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.08)}}
+.player-icon{font-size:25px}
+.topline{display:flex;justify-content:space-around;gap:8px;align-items:center}
+.player-card{flex:1;background:#fff4e8;border-radius:12px;padding:10px}
+#bgmBtn{background:#8eb9a1;border-color:#8eb9a1}
 </style>
 </head>
 <body>
 <main>
-<h1>🎲 嘘つきサイコロ</h1>
-<p>うそを見破って30マスを目指そう！</p>
+<h1>🏝️ 嘘つきサイコロ 🎲</h1>
+<p>うそを見破って30マスの島を冒険しよう！</p>
 
 <div class="panel">
  <div id="status">接続中...</div>
  <div id="loginArea">
   <p>プレイヤー名を入力してね</p>
   <input id="playerName" maxlength="12" placeholder="プレイヤー名">
-  <button id="createBtn">🌷 ルームを作る</button>
+  <button id="createBtn">🏝️ ルームを作る</button>
   <p>または招待コードで参加</p>
   <input id="joinCode" maxlength="6" placeholder="招待コード">
   <button id="joinBtn" class="secondary">ルームに参加</button>
-  <hr style="border:0;border-top:1px solid #ead8f2;margin:18px 0">
+  <hr style="border:0;border-top:1px solid #ead8c8;margin:18px 0">
   <button id="randomBtn" class="pink">🎲 ランダムマッチ</button>
  </div>
-
  <div id="waitingArea" class="hidden">
-  <p>招待コードを友達に教えてね！</p>
+  <p>🌴 招待コードを友達に教えてね！</p>
   <div id="roomCode"></div>
   <p class="small">相手が参加すると対戦が始まるよ</p>
  </div>
@@ -73,97 +100,93 @@ button.pink{background:#e9a9c9;border-color:#e9a9c9}
 
 <div id="gameArea" class="hidden">
  <div class="panel">
-  <div id="player0">PLAYER 1 🩵</div>
-  <b id="p0">0 / 30</b>
-  <hr style="border:0;border-top:1px solid #ead8f2;margin:12px 0">
-  <div id="player1">PLAYER 2 💗</div>
-  <b id="p1">0 / 30</b>
+  <div class="topline">
+   <div class="player-card">
+    <div class="player-icon">🦀</div>
+    <div id="player0">PLAYER 1</div>
+    <b id="p0">0 / 30</b>
+   </div>
+   <div class="player-card">
+    <div class="player-icon">🐙</div>
+    <div id="player1">PLAYER 2</div>
+    <b id="p1">0 / 30</b>
+   </div>
+  </div>
  </div>
 
  <div class="panel">
-  <h3>🌷 GAME BOARD</h3>
+  <h3>🌴 ISLAND BOARD 🌴</h3>
   <div class="board" id="board"></div>
+  <p class="small">🏝️ 30マスのゴールを目指そう！</p>
  </div>
 
  <div class="panel">
   <div id="turn"></div>
+  <div id="timer" class="timer">10</div>
+  <div class="small" id="timerLabel">残り時間</div>
   <div class="dice" id="dice">🎲</div>
   <div id="message">ゲーム開始！</div>
 
   <div id="rollArea">
-   <button id="rollBtn">サイコロを振る</button>
+   <button id="rollBtn">🎲 サイコロを振る</button>
   </div>
-
   <div id="declareArea" class="hidden">
    <p>出目を宣言してね！</p>
    <button id="truthBtn">本当の出目</button>
-   <button id="lieBtn" class="pink">嘘の出目</button>
+   <button id="lieBtn" class="pink">🤥 嘘の出目</button>
   </div>
-
   <div id="challengeArea" class="hidden">
    <p>宣言を信じる？</p>
-   <button id="doubtBtn" class="pink">ダウト！</button>
-   <button id="believeBtn">信じる</button>
+   <button id="doubtBtn" class="pink">⚡ ダウト！</button>
+   <button id="believeBtn" class="green">信じる</button>
   </div>
  </div>
 </div>
 
 <div class="panel">
+ <button id="bgmBtn">🎵 BGM ON</button>
  <button id="backBtn" class="secondary">タイトルに戻る</button>
  <p class="small">オンライン対戦 / 2人用</p>
 </div>
 </main>
 
 <script>
-const SUPABASE_URL = "https://pggwvveeprbnowrarbff.supabase.co";
-const SUPABASE_KEY = "sb_publishable_zk1iWPtsHN8GkWIDRHeLrw_Yr9iMZWT";
-const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_URL="https://pggwvveeprbnowrarbff.supabase.co";
+const SUPABASE_KEY="sb_publishable_zk1iWPtsHN8GkWIDRHeLrw_Yr9iMZWT";
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
-let user = null;
-let room = null;
-let myIndex = -1;
-let game = null;
-let channel = null;
-let poller = null;
-let busy = false;
+let user=null,room=null,myIndex=-1,game=null,channel=null;
+let poller=null,timerLoop=null,busy=false,rolling=false;
+const $=id=>document.getElementById(id);
+const symbols=["","⚀","⚁","⚂","⚃","⚄","⚅"];
+const icons=["🦀","🐙"];
+const PHASE_TIME=10;
 
-const $ = id => document.getElementById(id);
-const symbols = ["","⚀","⚁","⚂","⚃","⚄","⚅"];
+function say(t){$("status").textContent=t}
+function name(){return $("playerName").value.trim().slice(0,12)||"プレイヤー"}
+function show(id,yes){$(id).classList.toggle("hidden",!yes)}
+function newDeadline(){return Date.now()+PHASE_TIME*1000}
 
-function say(text){$("status").textContent=text;}
-function name(){
- return $("playerName").value.trim().slice(0,12) || "プレイヤー";
-}
 function initialGame(hostName){
  return {
   players:[hostName,"プレイヤー2"],
-  pos:[0,0],
-  turn:0,
-  phase:"roll",
-  real:null,
-  claim:null,
-  claimant:null,
-  finished:false,
-  winner:null,
-  message:"ゲーム開始！"
+  pos:[0,0],turn:0,phase:"roll",
+  real:null,claim:null,claimant:null,
+  finished:false,winner:null,
+  message:"ゲーム開始！",
+  deadline:null
  };
 }
-function makeCode(){
- return Math.random().toString(36).substring(2,8).toUpperCase();
-}
-function show(el,yes){$(el).classList.toggle("hidden",!yes);}
+function makeCode(){return Math.random().toString(36).substring(2,8).toUpperCase()}
 
 async function connect(){
  try{
-  const result = await db.auth.signInAnonymously();
-  if(result.error) throw result.error;
-  user=result.data.user;
-  say("接続しました！");
+  const r=await db.auth.signInAnonymously();
+  if(r.error)throw r.error;
+  user=r.data.user;say("接続しました！");
  }catch(e){
   say("接続エラー："+e.message);
-  $("createBtn").disabled=true;
-  $("joinBtn").disabled=true;
-  $("randomBtn").disabled=true;
+  ["createBtn","joinBtn","randomBtn"].forEach(id=>$(id).disabled=true);
  }
 }
 connect();
@@ -171,110 +194,80 @@ connect();
 async function createRoom(isRandom=false){
  if(!user)return alert("まだ接続中だよ。少し待ってね！");
  if(busy)return;
- busy=true;
- say("ルームを作成中...");
+ busy=true;say("ルームを作成中...");
  try{
   let created=null;
   for(let i=0;i<5;i++){
    const code=makeCode();
-   const result=await db.from("game_rooms").insert({
-    code,
-    host_id:user.id,
-    status:"waiting",
+   const r=await db.from("game_rooms").insert({
+    code,host_id:user.id,status:"waiting",
     game_state:initialGame(name())
    }).select().single();
-   if(!result.error){created=result.data;break;}
-   if(!String(result.error.message).toLowerCase().includes("duplicate"))
-    throw result.error;
+   if(!r.error){created=r.data;break}
+   if(!String(r.error.message).toLowerCase().includes("duplicate"))throw r.error;
   }
-  if(!created)throw new Error("ルームを作成できませんでした。もう一度試してね。");
-  room=created;
-  myIndex=0;
-  game=created.game_state;
-  show("loginArea",false);
-  show("waitingArea",true);
+  if(!created)throw new Error("ルームを作成できませんでした。");
+  room=created;myIndex=0;game=created.game_state;
+  show("loginArea",false);show("waitingArea",true);
   $("roomCode").textContent=created.code;
   say(isRandom?"対戦相手を探しています...":"ルームを作ったよ！");
   startSync();
- }catch(e){
-  say("エラー："+e.message);
-  alert("ルーム作成エラー："+e.message);
- }finally{busy=false;}
+ }catch(e){say("エラー："+e.message);alert("ルーム作成エラー："+e.message)}
+ finally{busy=false}
 }
 
 async function joinRoom(code){
  if(!user)return alert("まだ接続中だよ。少し待ってね！");
  if(busy)return;
- busy=true;
- say("ルームを探しています...");
+ busy=true;say("ルームを探しています...");
  try{
-  const found=await db.from("game_rooms")
-   .select("*").eq("code",code).eq("status","waiting")
-   .is("guest_id",null).maybeSingle();
-  if(found.error)throw found.error;
-  if(!found.data)throw new Error("部屋が見つからないよ。コードを確認してね。");
-
-  const newGame=found.data.game_state || initialGame("プレイヤー1");
-  newGame.players[1]=name();
-
-  const joined=await db.from("game_rooms")
-   .update({guest_id:user.id,status:"playing",game_state:newGame})
-   .eq("id",found.data.id).is("guest_id",null)
-   .select().maybeSingle();
-
+  const f=await db.from("game_rooms").select("*")
+   .eq("code",code).eq("status","waiting").is("guest_id",null).maybeSingle();
+  if(f.error)throw f.error;
+  if(!f.data)throw new Error("部屋が見つからないよ。コードを確認してね。");
+  const g=f.data.game_state||initialGame("プレイヤー1");
+  g.players[1]=name();
+  g.deadline=newDeadline();
+  const joined=await db.from("game_rooms").update({
+   guest_id:user.id,status:"playing",game_state:g
+  }).eq("id",f.data.id).is("guest_id",null).select().maybeSingle();
   if(joined.error)throw joined.error;
   if(!joined.data)throw new Error("ほかの人が先に参加したみたい。");
-
-  room=joined.data;
-  myIndex=1;
-  game=room.game_state;
-  show("loginArea",false);
-  show("waitingArea",false);
-  show("gameArea",true);
-  startSync();
-  render();
- }catch(e){
-  say("参加できませんでした");
-  alert(e.message);
- }finally{busy=false;}
+  room=joined.data;myIndex=1;game=room.game_state;
+  show("loginArea",false);show("waitingArea",false);show("gameArea",true);
+  startSync();render();
+ }catch(e){say("参加できませんでした");alert(e.message)}
+ finally{busy=false}
 }
 
 async function randomMatch(){
  if(!user)return alert("まだ接続中だよ。少し待ってね！");
  say("対戦相手を探しています...");
  try{
-  const found=await db.from("game_rooms")
-   .select("*").eq("status","waiting").is("guest_id",null)
+  const f=await db.from("game_rooms").select("*")
+   .eq("status","waiting").is("guest_id",null)
    .neq("host_id",user.id).limit(1).maybeSingle();
-
-  if(found.error)throw found.error;
-  if(found.data){
-   await joinRoom(found.data.code);
-  }else{
-   await createRoom(true);
-  }
- }catch(e){
-  say("エラー："+e.message);
-  alert(e.message);
- }
+  if(f.error)throw f.error;
+  if(f.data)await joinRoom(f.data.code);
+  else await createRoom(true);
+ }catch(e){say("エラー："+e.message);alert(e.message)}
 }
 
 async function startSync(){
  show("waitingArea",room.status==="waiting");
  show("gameArea",room.status==="playing");
- if(room.status==="waiting"){
-  $("roomCode").textContent=room.code;
- }
+ if(room.status==="waiting")$("roomCode").textContent=room.code;
  if(channel)await db.removeChannel(channel);
  channel=db.channel("room-"+room.id)
   .on("postgres_changes",{
    event:"UPDATE",schema:"public",table:"game_rooms",
    filter:"id=eq."+room.id
-  },payload=>receive(payload.new))
+  },p=>receive(p.new))
   .subscribe();
-
  if(poller)clearInterval(poller);
- poller=setInterval(refresh,1500);
+ poller=setInterval(refresh,1200);
+ if(timerLoop)clearInterval(timerLoop);
+ timerLoop=setInterval(tick,200);
 }
 
 function receive(row){
@@ -282,125 +275,210 @@ function receive(row){
  room=row;
  if(row.status==="playing"){
   game=row.game_state;
-  show("waitingArea",false);
-  show("gameArea",true);
+  show("waitingArea",false);show("gameArea",true);
   render();
  }
 }
 async function refresh(){
  if(!room)return;
- const result=await db.from("game_rooms")
-  .select("*").eq("id",room.id).maybeSingle();
- if(!result.error&&result.data)receive(result.data);
+ const r=await db.from("game_rooms").select("*").eq("id",room.id).maybeSingle();
+ if(!r.error&&r.data)receive(r.data);
 }
 
-async function saveGame(next){
- if(!room||busy)return;
+async function saveGame(next,expectedDeadline=null){
+ if(!room||busy)return false;
  busy=true;
  try{
-  const result=await db.from("game_rooms")
-   .update({game_state:next})
-   .eq("id",room.id)
-   .select().single();
-  if(result.error)throw result.error;
-  receive(result.data);
- }catch(e){
-  alert("保存エラー："+e.message);
- }finally{busy=false;}
+  let q=db.from("game_rooms").update({game_state:next}).eq("id",room.id);
+  if(expectedDeadline!==null)
+   q=q.eq("game_state->>deadline",String(expectedDeadline));
+  const r=await q.select().maybeSingle();
+  if(r.error)throw r.error;
+  if(!r.data){await refresh();return false}
+  receive(r.data);return true;
+ }catch(e){alert("保存エラー："+e.message);return false}
+ finally{busy=false}
 }
 
 function render(){
  if(!game)return;
- $("player0").textContent=game.players[0]+" 🩵";
- $("player1").textContent=game.players[1]+" 💗";
+ $("player0").textContent=game.players[0];
+ $("player1").textContent=game.players[1];
  $("p0").textContent=game.pos[0]+" / 30";
  $("p1").textContent=game.pos[1]+" / 30";
 
- const board=$("board");
- board.innerHTML="";
+ const board=$("board");board.innerHTML="";
  for(let i=0;i<=30;i++){
   const c=document.createElement("div");
   c.className="cell";
+  if(i===0)c.classList.add("start");
+  if(i===30)c.classList.add("goal");
   if(game.pos[0]===i)c.classList.add("me");
   if(game.pos[1]===i)c.classList.add("enemy");
-  c.textContent=game.pos[0]===i&&game.pos[1]===i&&i!==0
-   ?"🩵💗":game.pos[0]===i?"🩵":game.pos[1]===i?"💗"
-   :i===0?"START":i===30?"GOAL":i;
-  board.appendChild(c);
+  const tokens=[];
+  if(game.pos[0]===i)tokens.push("🦀");
+  if(game.pos[1]===i)tokens.push("🐙");
+  const token=document.createElement("div");
+  token.className="tokens";token.textContent=tokens.join("");
+  const num=document.createElement("div");
+  num.className="number";
+  num.textContent=i===0?"START":i===30?"GOAL":i;
+  c.append(token,num);board.appendChild(c);
  }
 
- $("turn").textContent=game.finished
-  ?"GAME FINISHED"
-  :game.players[game.turn]+" のターン";
-
+ $("turn").textContent=game.finished?"🏆 GAME FINISHED":
+  icons[game.turn]+" "+game.players[game.turn]+" のターン";
  $("dice").textContent=game.claim===null?"🎲":symbols[game.claim];
- $("message").textContent=game.message || "";
+ $("message").textContent=game.message||"";
 
  const myTurn=game.turn===myIndex;
- const myChallenge=game.phase==="challenge"&&game.claimant!==myIndex;
  show("rollArea",!game.finished&&game.phase==="roll"&&myTurn);
  show("declareArea",!game.finished&&game.phase==="declare"&&myTurn);
  show("challengeArea",!game.finished&&game.phase==="challenge"&&!myTurn);
+ tick();
 }
 
-async function rollDice(){
- if(!game||game.phase!=="roll"||game.turn!==myIndex||busy)return;
- const next={...game};
- next.real=Math.floor(Math.random()*6)+1;
- next.claim=null;
- next.claimant=myIndex;
- next.phase="declare";
- next.message="出目を宣言してね！";
- await saveGame(next);
-}
-
-async function declare(isTruth){
- if(!game||game.phase!=="declare"||game.turn!==myIndex||busy)return;
- const next={...game};
- let value=next.real;
- if(!isTruth){
-  const choices=[1,2,3,4,5,6].filter(n=>n!==next.real);
-  value=choices[Math.floor(Math.random()*choices.length)];
+function tick(){
+ if(!game||game.finished||!game.deadline){
+  $("timer").textContent="--";return;
  }
- next.claim=value;
- next.phase="challenge";
- next.message=next.players[myIndex]+" は "+value+" と宣言した！";
- await saveGame(next);
+ const left=Math.max(0,Math.ceil((game.deadline-Date.now())/1000));
+ $("timer").textContent=left;
+ $("timer").classList.toggle("danger",left<=3);
+ $("timerLabel").textContent=
+  game.phase==="roll"?"サイコロを振るまで":
+  game.phase==="declare"?"出目を宣言するまで":"ダウト・信じるの判断";
+ if(left===0)handleTimeout();
 }
 
-async function challenge(doubt){
- if(!game||game.phase!=="challenge"||game.turn===myIndex||busy)return;
- const next={...game};
- const declarer=next.claimant;
- const challenger=1-declarer;
+function endTurn(next,message){
+ next.turn=1-next.turn;
+ next.phase="roll";
+ next.real=null;next.claim=null;next.claimant=null;
+ next.deadline=newDeadline();
+ next.message=message;
+}
 
- if(doubt){
-  if(next.claim!==next.real){
-   next.pos[challenger]++;
-   next.message="🎉 ダウト成功！嘘を見破った！";
-  }else{
-   next.pos[declarer]++;
-   next.message="💦 ダウト失敗！本当だった！";
-  }
- }else{
-  next.pos[declarer]+=next.claim;
-  next.message="信じた！ "+next.claim+" マス進む！";
- }
-
+function finishRound(next,message){
  next.pos[0]=Math.min(30,next.pos[0]);
  next.pos[1]=Math.min(30,next.pos[1]);
  if(next.pos[0]>=30||next.pos[1]>=30){
   next.finished=true;
   next.winner=next.pos[0]>=30?0:1;
   next.message="🏆 "+next.players[next.winner]+" の勝利！！";
+  next.deadline=null;
  }else{
-  next.turn=1-next.turn;
-  next.phase="roll";
-  next.real=null;
-  next.claim=null;
-  next.claimant=null;
+  endTurn(next,message);
+ }
+}
+
+let timeoutRunning=false;
+async function handleTimeout(){
+ if(timeoutRunning||busy||!game||game.finished||!game.deadline)return;
+ if(Date.now()<game.deadline)return;
+ timeoutRunning=true;
+ const oldDeadline=game.deadline;
+ const next=JSON.parse(JSON.stringify(game));
+ if(next.phase==="roll"){
+  endTurn(next,"⌛ 時間切れ！ターン交代！");
+ }else if(next.phase==="declare"){
+  endTurn(next,"⌛ 宣言時間切れ！ターン交代！");
+ }else if(next.phase==="challenge"){
+  const declarer=next.claimant;
+  next.pos[declarer]+=next.claim;
+  finishRound(next,"⌛ 判断時間切れ！宣言を信じた扱いになったよ！");
+ }
+ await saveGame(next,oldDeadline);
+ timeoutRunning=false;
+}
+
+async function rollDice(){
+ if(!game||game.phase!=="roll"||game.turn!==myIndex||busy||rolling)return;
+ rolling=true;
+ $("rollBtn").disabled=true;
+ $("dice").classList.add("rolling");
+ let count=0;
+ const anim=setInterval(()=>{
+  $("dice").textContent=symbols[1+Math.floor(Math.random()*6)];
+  count++;
+  if(count>=10){
+   clearInterval(anim);
+   $("dice").classList.remove("rolling");
+   rolling=false;
+   $("rollBtn").disabled=false;
+   const next={...game};
+   next.real=1+Math.floor(Math.random()*6);
+   next.claim=null;next.claimant=myIndex;
+   next.phase="declare";next.deadline=newDeadline();
+   next.message="出目を宣言してね！";
+   $("dice").textContent=symbols[next.real];
+   saveGame(next);
+  }
+ },70);
+}
+
+async function declare(isTruth){
+ if(!game||game.phase!=="declare"||game.turn!==myIndex||busy)return;
+ const next=JSON.parse(JSON.stringify(game));
+ let value=next.real;
+ if(!isTruth){
+  const choices=[1,2,3,4,5,6].filter(n=>n!==next.real);
+  value=choices[Math.floor(Math.random()*choices.length)];
+ }
+ next.claim=value;next.phase="challenge";next.deadline=newDeadline();
+ next.message=next.players[myIndex]+" は "+value+" と宣言した！";
+ await saveGame(next);
+}
+
+async function challenge(doubt){
+ if(!game||game.phase!=="challenge"||game.turn===myIndex||busy)return;
+ const next=JSON.parse(JSON.stringify(game));
+ const declarer=next.claimant;
+ const challenger=1-declarer;
+ if(doubt){
+  if(next.claim!==next.real){
+   next.pos[challenger]++;
+   finishRound(next,"🎉 ダウト成功！嘘を見破った！");
+  }else{
+   next.pos[declarer]++;
+   finishRound(next,"💦 ダウト失敗！本当だった！");
+  }
+ }else{
+  next.pos[declarer]+=next.claim;
+  finishRound(next,"信じた！ "+next.claim+" マス進む！");
  }
  await saveGame(next);
+}
+
+/* BGM: オリジナルの簡単な電子音メロディ */
+let audioCtx=null,bgmTimer=null,bgmOn=false,noteIndex=0;
+const melody=[523,659,784,659,587,698,880,698,523,659,784,1046];
+function playNote(){
+ if(!audioCtx||!bgmOn)return;
+ const osc=audioCtx.createOscillator();
+ const gain=audioCtx.createGain();
+ osc.type="sine";
+ osc.frequency.value=melody[noteIndex%melody.length];
+ gain.gain.setValueAtTime(.0001,audioCtx.currentTime);
+ gain.gain.exponentialRampToValueAtTime(.045,audioCtx.currentTime+.04);
+ gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.28);
+ osc.connect(gain);gain.connect(audioCtx.destination);
+ osc.start();osc.stop(audioCtx.currentTime+.3);
+ noteIndex++;
+}
+async function toggleBgm(){
+ try{
+  if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended")await audioCtx.resume();
+  bgmOn=!bgmOn;
+  if(bgmOn){
+   playNote();bgmTimer=setInterval(playNote,330);
+   $("bgmBtn").textContent="🔇 BGM OFF";
+  }else{
+   clearInterval(bgmTimer);
+   $("bgmBtn").textContent="🎵 BGM ON";
+  }
+ }catch(e){alert("この端末ではBGMを再生できませんでした。")}
 }
 
 $("createBtn").onclick=()=>createRoom(false);
@@ -411,18 +489,26 @@ $("truthBtn").onclick=()=>declare(true);
 $("lieBtn").onclick=()=>declare(false);
 $("doubtBtn").onclick=()=>challenge(true);
 $("believeBtn").onclick=()=>challenge(false);
+$("bgmBtn").onclick=toggleBgm;
+
 $("joinCode").addEventListener("input",e=>{
  e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");
 });
 $("backBtn").onclick=async()=>{
  if(poller)clearInterval(poller);
+ if(timerLoop)clearInterval(timerLoop);
  if(channel)await db.removeChannel(channel);
+ if(bgmTimer)clearInterval(bgmTimer);
+ bgmOn=false;$("bgmBtn").textContent="🎵 BGM ON";
  room=null;game=null;myIndex=-1;
- show("loginArea",true);
- show("waitingArea",false);
- show("gameArea",false);
+ show("loginArea",true);show("waitingArea",false);show("gameArea",false);
  say("タイトルに戻りました");
 };
+document.addEventListener("visibilitychange",()=>{
+ if(!document.hidden)refresh();
+});
+window.addEventListener("focus",refresh);
+window.addEventListener("pageshow",refresh);
 </script>
 </body>
 </html>
