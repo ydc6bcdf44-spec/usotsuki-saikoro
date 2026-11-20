@@ -259,9 +259,10 @@ async function restoreRoom(){
  startSync();render();
 }
 
-async function createRoom(isRandom=false){
+async function createRoom(){
  if(!user)return alert("接続中だよ。少し待ってね！");
- if(busy)return;busy=true;say("ルームを作成中...");
+ if(busy)return;
+ busy=true;say("ルームを作成中...");
  try{
   let created=null;
   for(let i=0;i<5;i++){
@@ -272,8 +273,9 @@ async function createRoom(isRandom=false){
   if(!created)throw new Error("ルームを作成できませんでした");
   room=created;myIndex=0;game=created.game_state;ownRoll=null;
   localStorage.setItem(ROOM_KEY,room.id);
-  show("loginArea",false);show("waitingArea",true);$("roomCode").textContent=created.code;
-  say(isRandom?"対戦相手を探しています...":"ルームを作ったよ！");
+  show("loginArea",false);show("waitingArea",true);show("gameArea",false);
+  $("roomCode").textContent=created.code;
+  say("ルームを作ったよ！");
   startSync();
  }catch(e){say("エラー："+e.message);alert(e.message)}
  finally{busy=false}
@@ -281,7 +283,8 @@ async function createRoom(isRandom=false){
 
 async function joinRoom(code){
  if(!user)return alert("接続中だよ。少し待ってね！");
- if(busy)return;busy=true;say("部屋に参加しています...");
+ if(busy)return;
+ busy=true;say("部屋に参加しています...");
  try{
   const r=await db.rpc("join_room_by_code",{p_code:code,p_player_name:playerName()});
   if(r.error)throw r.error;
@@ -295,23 +298,57 @@ async function joinRoom(code){
  finally{busy=false}
 }
 
+/* 修正版：SQL側で部屋の作成・参加を一括処理する */
 async function randomMatch(){
  if(!user)return alert("接続中だよ。少し待ってね！");
- if(busy)return;busy=true;say("対戦相手を探しています...");
+ if(busy)return;
+
+ busy=true;
+ say("対戦相手を探しています...");
+
  try{
-  const r=await db.rpc("join_random_room",{p_player_name:playerName()});
+  const r=await db.rpc("join_random_room",{
+   p_player_name:playerName()
+  });
+
   if(r.error)throw r.error;
+
   const joined=Array.isArray(r.data)?r.data[0]:r.data;
-  if(joined){
-   room=joined;game=joined.game_state;myIndex=1;ownRoll=null;
-   localStorage.setItem(ROOM_KEY,room.id);
-   show("loginArea",false);show("waitingArea",false);show("gameArea",true);
-   startSync();render();
+  if(!joined)throw new Error("部屋を取得できませんでした");
+
+  room=joined;
+  game=joined.game_state;
+  myIndex=joined.host_id===user.id?0:1;
+  ownRoll=null;
+
+  setupSubmittedAttempt=-1;
+  setupAutoAttempt=-1;
+  matchBannerShownFor=null;
+
+  localStorage.setItem(ROOM_KEY,room.id);
+
+  if(room.status==="waiting"){
+   show("loginArea",false);
+   show("waitingArea",true);
+   show("gameArea",false);
+   $("roomCode").textContent=room.code;
+   say("対戦相手を探しています...");
   }else{
-   busy=false;await createRoom(true);return;
+   show("loginArea",false);
+   show("waitingArea",false);
+   show("gameArea",true);
+   say("対戦相手が見つかりました！");
   }
- }catch(e){say("エラー："+e.message);alert(e.message)}
- finally{busy=false}
+
+  startSync();
+  render();
+
+ }catch(e){
+  say("エラー："+e.message);
+  alert(e.message);
+ }finally{
+  busy=false;
+ }
 }
 
 /* 同期処理 */
@@ -330,7 +367,6 @@ async function startSync(){
  if(timerLoop)clearInterval(timerLoop);
  timerLoop=setInterval(tick,250);
 
- // 参加した側も、すでに対戦中ならマッチ成立演出を確認する
  if(room.status==="playing"&&game&&game.phase==="setup"){
   showMatchBanner();
  }
@@ -343,7 +379,6 @@ function receive(row){
  if(row.status==="playing"){
   game=row.game_state;
   show("waitingArea",false);show("gameArea",true);
-
   if(game.phase==="setup")showMatchBanner();
   render();
  }else if(row.status==="expired"){
@@ -361,7 +396,7 @@ async function loadOwnSecret(){
  if(!r.error&&r.data)ownRoll=r.data.real_roll;else ownRoll=null;
 }
 
-/* マッチ成立演出：成立から3秒以内だけ表示 */
+/* マッチ成立演出 */
 function showMatchBanner(){
  if(!room||!game)return;
 
@@ -369,8 +404,6 @@ function showMatchBanner(){
  const key=room.id+":"+started;
 
  if(matchBannerShownFor===key)return;
-
- // マッチ成立から3秒以上経過していたら再表示しない
  if(started&&Date.now()-started>=3000)return;
 
  matchBannerShownFor=key;
@@ -408,7 +441,8 @@ async function submitSetupRoll(){
   say("先攻決めエラー："+e.message);
   $("setupRollBtn").disabled=false;
  }finally{
-  $("dice").classList.remove("rolling");busy=false;
+  $("dice").classList.remove("rolling");
+  busy=false;
  }
 }
 
@@ -525,7 +559,11 @@ async function rollDice(){
  const anim=setInterval(()=>{
   $("dice").textContent=diceFaces[1+Math.floor(Math.random()*6)];
   if(++count>=12){
-   clearInterval(anim);$("dice").classList.remove("rolling");rolling=false;$("rollBtn").disabled=false;action("roll");
+   clearInterval(anim);
+   $("dice").classList.remove("rolling");
+   rolling=false;
+   $("rollBtn").disabled=false;
+   action("roll");
   }
  },65);
 }
@@ -534,13 +572,15 @@ document.querySelectorAll("[data-number]").forEach(btn=>btn.addEventListener("cl
  const n=Number(btn.dataset.number);
  if(game&&game.phase==="declare"&&game.turn===myIndex)action("declare",n);
 }));
-$("createBtn").onclick=()=>createRoom(false);
+
+$("createBtn").onclick=()=>createRoom();
 $("joinBtn").onclick=()=>joinRoom($("joinCode").value.trim().toUpperCase());
 $("randomBtn").onclick=randomMatch;
 $("rollBtn").onclick=rollDice;
 $("setupRollBtn").onclick=submitSetupRoll;
 $("doubtBtn").onclick=()=>action("doubt");
 $("believeBtn").onclick=()=>action("believe");
+
 $("copyBtn").onclick=async()=>{
  try{await navigator.clipboard.writeText(room.code);say("招待コードをコピーしたよ！")}
  catch(e){say("招待コード："+room.code)}
