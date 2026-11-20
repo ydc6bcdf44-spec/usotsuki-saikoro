@@ -2,96 +2,155 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>嘘つきサイコロ</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: #f8eaff;
-      color: #55415f;
-      font-family: system-ui, sans-serif;
-      display: flex;
-      justify-content: center;
-      padding: 24px 14px;
-    }
-    main {
-      width: 100%;
-      max-width: 440px;
-      text-align: center;
-    }
-    h1 { color: #a66bc2; font-size: 30px; }
-    .panel {
-      background: white;
-      border: 3px solid #e8c9f5;
-      border-radius: 20px;
-      padding: 20px;
-      margin: 16px 0;
-      box-shadow: 0 5px 0 #dfc0ed;
-    }
-    input, button {
-      width: 100%;
-      padding: 13px;
-      margin: 7px 0;
-      border-radius: 12px;
-      font-size: 16px;
-    }
-    input { border: 2px solid #e8c9f5; }
-    button {
-      border: 0;
-      background: #b77bd1;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    button:disabled { opacity: .5; }
-    #status { min-height: 24px; color: #9462a8; }
-    .small { font-size: 12px; color: #927e99; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>嘘つきサイコロ</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f6eaff;color:#594568;font-family:monospace;text-align:center;padding:16px}
+main{max-width:480px;margin:auto}
+h1{color:#a66bc2;font-size:27px}
+.panel{background:white;border:3px solid #e4c7f3;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 4px 0 #ddc1eb}
+button{border:2px solid #dfc3ee;border-radius:10px;padding:12px;font-size:16px;margin:5px;background:#bd8bd3;color:white;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.4}
+.board{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.cell{background:#f0e2f8;border:2px solid #dfc6ed;border-radius:7px;padding:9px 2px;font-size:12px}
+.me{background:#c8a1e4}
+.enemy{background:#f5b9d2}
+.dice{font-size:65px;margin:10px}
+#message{min-height:45px;line-height:1.7}
+</style>
 </head>
 <body>
 <main>
-  <h1>🎲 嘘つきサイコロ</h1>
-  <p>うそを見破って、ゴールを目指そう！</p>
+<h1>🎲 嘘つきサイコロ</h1>
+<p>うそを見破って30マスを目指そう！</p>
 
-  <section class="panel">
-    <h2>プレイヤー名</h2>
-    <input id="playerName" maxlength="12" placeholder="名前を入力">
-  </section>
+<div class="panel">
+<div>PLAYER 1 🩵</div>
+<b id="p1">0 / 30</b>
+<div>PLAYER 2 💗</div>
+<b id="p2">0 / 30</b>
+</div>
 
-  <section class="panel">
-    <h2>🏠 友達と遊ぶ</h2>
-    <button id="createRoom">ルームを作る</button>
-    <input id="roomCode" maxlength="6" placeholder="ルームコード">
-    <button id="joinRoom">ルームに参加</button>
-  </section>
+<div class="panel">
+<h3>🌷 GAME BOARD</h3>
+<div class="board" id="board"></div>
+</div>
 
-  <section class="panel">
-    <h2>🎮 ランダムマッチ</h2>
-    <button id="randomMatch">対戦相手を探す</button>
-  </section>
-
-  <p id="status">Supabase接続の準備中…</p>
-  <p class="small">嘘つきサイコロ / Online Edition</p>
+<div class="panel">
+<div id="turn">PLAYER 1 のターン</div>
+<div class="dice" id="dice">🎲</div>
+<div id="message">サイコロを振ってね！</div>
+<button id="roll">サイコロを振る</button>
+<div id="choices" hidden>
+<button id="truth">本当の出目を宣言</button>
+<button id="lie">嘘の出目を宣言</button>
+</div>
+<div id="challenge" hidden>
+<button id="doubt">ダウト！</button>
+<button id="believe">信じる</button>
+</div>
+<button id="next" hidden>次のターンへ</button>
+<button id="reset">最初から遊ぶ</button>
+</div>
 </main>
 
 <script>
-  // 次の工程でSupabase接続とオンライン対戦処理を追加します。
-  const statusText = document.getElementById("status");
+let pos=[0,0],turn=0,real=0,claim=0;
+let phase="roll",finished=false;
+const board=document.getElementById("board");
+const msg=document.getElementById("message");
+const dice=document.getElementById("dice");
+const roll=document.getElementById("roll");
+const choices=document.getElementById("choices");
+const challenge=document.getElementById("challenge");
+const next=document.getElementById("next");
 
-  document.getElementById("createRoom").onclick = () => {
-    statusText.textContent = "ルーム作成機能を準備中です。";
-  };
+for(let i=0;i<=30;i++){
+ const c=document.createElement("div");
+ c.className="cell";
+ c.textContent=i===0?"START":i===30?"GOAL":i;
+ board.appendChild(c);
+}
 
-  document.getElementById("joinRoom").onclick = () => {
-    statusText.textContent = "ルーム参加機能を準備中です。";
-  };
+function render(){
+ document.getElementById("p1").textContent=pos[0]+" / 30";
+ document.getElementById("p2").textContent=pos[1]+" / 30";
+ [...board.children].forEach((c,i)=>{
+  c.className="cell";
+  if(pos[0]===i)c.classList.add("me");
+  if(pos[1]===i)c.classList.add("enemy");
+  c.textContent=pos[0]===i&&pos[1]===i&&i!==0?"🩵💗":pos[0]===i?"🩵":pos[1]===i?"💗":i===0?"START":i===30?"GOAL":i;
+ });
+ document.getElementById("turn").textContent="PLAYER "+(turn+1)+" のターン";
+}
 
-  document.getElementById("randomMatch").onclick = () => {
-    statusText.textContent = "ランダムマッチ機能を準備中です。";
-  };
+roll.onclick=()=>{
+ if(phase!=="roll"||finished)return;
+ real=Math.floor(Math.random()*6)+1;
+ dice.textContent=["","⚀","⚁","⚂","⚃","⚄","⚅"][real];
+ msg.textContent="本当の出目は "+real+"！宣言を選んでね。";
+ roll.hidden=true;choices.hidden=false;phase="declare";
+};
+
+document.getElementById("truth").onclick=()=>declare(real);
+document.getElementById("lie").onclick=()=>{
+ let options=[1,2,3,4,5,6].filter(x=>x!==real);
+ declare(options[Math.floor(Math.random()*5)]);
+};
+
+function declare(n){
+ claim=n;choices.hidden=true;challenge.hidden=false;
+ msg.textContent="PLAYER "+(turn+1)+" は "+claim+" と宣言した！";
+ phase="challenge";
+}
+
+document.getElementById("doubt").onclick=()=>{
+ challenge.hidden=true;
+ if(claim!==real){
+  msg.textContent="🎉 ダウト成功！嘘を見破った！";
+  pos[turn]++;
+ }else{
+  msg.textContent="💦 ダウト失敗！本当だった！";
+  pos[1-turn]++;
+ }
+ finishRound();
+};
+
+document.getElementById("believe").onclick=()=>{
+ challenge.hidden=true;
+ pos[turn]+=claim;
+ msg.textContent="宣言を信じた！ "+claim+" マス進む！";
+ finishRound();
+};
+
+function finishRound(){
+ pos[turn]=Math.min(30,pos[turn]);
+ pos[1-turn]=Math.min(30,pos[1-turn]);
+ render();
+ if(pos[0]>=30||pos[1]>=30){
+  finished=true;
+  msg.textContent="🏆 PLAYER "+(pos[0]>=30?1:2)+" の勝利！！";
+  next.hidden=true;return;
+ }
+ next.hidden=false;phase="next";
+}
+
+next.onclick=()=>{
+ turn=1-turn;phase="roll";next.hidden=true;
+ roll.hidden=false;render();
+ msg.textContent="サイコロを振ってね！";dice.textContent="🎲";
+};
+
+document.getElementById("reset").onclick=()=>{
+ pos=[0,0];turn=0;finished=false;phase="roll";
+ real=0;claim=0;roll.hidden=false;
+ choices.hidden=true;challenge.hidden=true;next.hidden=true;
+ dice.textContent="🎲";msg.textContent="サイコロを振ってね！";render();
+};
+
+render();
 </script>
 </body>
 </html>
