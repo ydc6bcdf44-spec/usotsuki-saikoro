@@ -726,12 +726,12 @@ function tick(){
   const left=Math.max(0,Math.ceil((timestampMs(game.matchFoundAt)+3000-Date.now())/1000));
   $("timer").textContent=left?String(left):"GO";$("timer").classList.remove("danger");return;
  }
- if(Array.isArray(game.setupRolls)&&Date.now()<Number(game.startReadyAt||0)){$("timer").textContent=String(Math.ceil((Number(game.startReadyAt)-Date.now())/1000));return;}
+ if(Array.isArray(game.setupRolls)&&Date.now()<Number(game.startReadyAt||0)){$("timer").textContent=String(Math.ceil((Number(game.startReadyAt)-Date.now())/1000));$("timer").classList.remove("danger");return;}
  const deadline=Number(game.deadline||0);
  if(!deadline){$("timer").textContent="--";return}
  const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));
  $("timer").textContent=String(left);$("timer").classList.toggle("danger",left<=3);
- if(left===0&&!timeoutBusy&&!busy){
+ if(left===0&&!timeoutBusy&&!busy&&Date.now()>=Number(game.startReadyAt||0)){
   timeoutBusy=true;action("timeout").finally(()=>timeoutBusy=false);
  }
 }
