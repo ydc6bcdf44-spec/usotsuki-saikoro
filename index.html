@@ -281,6 +281,26 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .start-die-card strong{font-family:var(--pixel-font);font-size:25px;color:#57968c}
 @media(max-width:760px){#game .start-dice-pair{gap:5px;margin:3px 0}#game .start-die-card{padding:3px 5px;gap:5px}#game .start-die-card span{font-size:11px}#game .start-die-card strong{font-size:20px}}
 @media(max-width:760px){#game .chat-panel .chat-log{display:flex;height:38px;min-height:38px;overflow:hidden;padding:3px 7px;margin:3px 0 0;justify-content:flex-end}#game .chat-log .chat-msg{display:none}#game .chat-log .chat-msg:last-child{display:block;max-width:100%;font-size:12px;padding:3px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#game .chat-log .chat-msg small{display:inline;margin-left:7px;font-size:10px}#game #chatError:not(.hidden){display:block;font-size:11px;padding:3px;color:#a34e67}}
+
+/* Mobile collision fix: reserve an independent chat row; never let control overlap it */
+@media(max-width:760px){
+ #game:not(.hidden){grid-template-rows:46px minmax(0,1fr) max-content 111px;gap:5px}
+ #game .board-panel{min-height:0;height:100%;overflow:hidden}
+ #game .board-wrap{height:100%;min-height:0}
+ #game .control{grid-row:3;align-self:stretch;min-height:0;max-height:230px;overflow:hidden;position:relative;z-index:1}
+ #game .chat-panel{grid-row:4;align-self:stretch;height:111px;min-height:0;max-height:111px;overflow:hidden;position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center}
+ #game .chat-actions{flex:0 0 auto}
+ #game .chat-panel .chat-log{flex:0 0 29px;height:29px;min-height:29px;margin:3px 0 0}
+ #game .dice-stage{margin:2px auto}
+ #game .action-area{padding-top:3px}
+ #game .action-area p{margin-bottom:3px}
+}
+@media(max-width:760px) and (max-height:670px){
+ #game:not(.hidden){grid-template-rows:40px minmax(0,1fr) max-content 100px;gap:3px}
+ #game .chat-panel{height:100px;max-height:100px}
+ #game .chat-actions button{min-height:27px}
+ #game .chat-panel .chat-log{flex-basis:25px;height:25px;min-height:25px}
+}
 </style>
 </head>
 <body>
