@@ -274,6 +274,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
  #game .board-panel{min-height:155px}
  #game .board-wrap{min-height:140px}
 }
+
+.start-dice-pair{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:8px 0}
+.start-die-card{background:#fff9e9;border:2px solid #e8d9a9;border-radius:12px;padding:7px;display:flex;align-items:center;justify-content:center;gap:9px}
+.start-die-card span{font-size:12px;color:#806b45;font-weight:900}
+.start-die-card strong{font-family:var(--pixel-font);font-size:25px;color:#57968c}
+@media(max-width:760px){#game .start-dice-pair{gap:5px;margin:3px 0}#game .start-die-card{padding:3px 5px;gap:5px}#game .start-die-card span{font-size:11px}#game .start-die-card strong{font-size:20px}}
 </style>
 </head>
 <body>
@@ -353,7 +359,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
    <div class="dice-stage" id="diceStage"><div class="die" id="dice"></div></div>
    <div class="private" id="privateRoll"></div>
    <div class="message" id="message">ゲーム開始！</div>
-   <div class="action-area hidden" id="setupArea"><h3>先攻を決めよう</h3><p id="setupHint">お互いにサイコロを振ってね。</p><div class="setup-result" id="setupResult"></div><button class="gold-btn wide" id="setupRollBtn">先攻決めのサイコロを振る</button></div>
+   <div class="action-area hidden" id="setupArea"><h3>先攻を決めよう</h3><p id="setupHint">お互いにサイコロを振ってね。</p><div class="start-dice-pair" id="startDicePair"><div class="start-die-card"><span>あなた</span><strong id="startMine">？</strong></div><div class="start-die-card"><span>相手</span><strong id="startOpponent">？</strong></div></div><div class="setup-result" id="setupResult"></div><button class="gold-btn wide" id="setupRollBtn">先攻決めのサイコロを振る</button></div>
    <div class="action-area hidden" id="rollArea"><h3>あなたの番</h3><p>サイコロを振って、本当の出目を確認。</p><button class="primary roll-btn" id="rollBtn">サイコロを振る</button></div>
    <div class="action-area hidden" id="declareArea"><h3>数字を宣言しよう</h3><p>本当の出目と違う数字を選んでもOK。</p><div class="number-grid" id="numberChoices"><button class="number-btn" data-number="1">1</button><button class="number-btn" data-number="2">2</button><button class="number-btn" data-number="3">3</button><button class="number-btn" data-number="4">4</button><button class="number-btn" data-number="5">5</button><button class="number-btn" data-number="6">6</button></div></div>
    <div class="action-area hidden" id="challengeArea"><h3>相手の宣言をどうする？</h3><p>本当だと思う？それともダウト？</p><div class="challenge-grid"><button class="danger" id="doubtBtn">ダウト！</button><button class="gold-btn" id="believeBtn">信じる</button></div></div>
@@ -599,6 +605,8 @@ async function setupRoll(){
  }
  busy=true;setupSubmitted=attempt;localStorage.setItem(startRollStorageKey(attempt),"submitted");$("setupRollBtn").disabled=true;
  const n=1+Math.floor(Math.random()*6);animateDie(n);
+ sessionStorage.setItem("start-visible:"+room.id+":"+attempt,String(n));
+ $("startMine").textContent=String(n);
  try{
   const {data,error}=await db.rpc("submit_start_roll",{p_room_id:room.id,p_roll:n});
   if(error)throw error;
@@ -691,7 +699,11 @@ function render(){
   const wait=Date.now()<ready,a=Number(game.setupAttempt||0);
   $("setupRollBtn").disabled=busy||setupSubmitted===a;
   $("setupHint").textContent=wait?"対戦開始の準備中…":setupSubmitted===a?"相手のサイコロを待っています":"サイコロを振って先攻を決めよう";
-  $("setupResult").textContent=Array.isArray(game.setupRolls)?"PLAYER 1："+game.setupRolls[0]+" ／ PLAYER 2："+game.setupRolls[1]:"";
+  const visible=Array.isArray(game.setupRolls)?game.setupRolls:null;
+  const ownVisible=sessionStorage.getItem("start-visible:"+room.id+":"+a);
+  $("startMine").textContent=visible?.[myIndex]??ownVisible??"？";
+  $("startOpponent").textContent=visible?.[1-myIndex]??"待機中";
+  $("setupResult").textContent=visible?"両方の出目がそろいました！":"";
   diceFace(5);$("privateRoll").textContent="";
   if(Array.isArray(game.setupRolls))autoReroll();
  }else if(phase==="declare"&&game.claimant===myIndex&&ownRoll!==null){
