@@ -332,9 +332,14 @@ function saveSettings(){
 
 async function connect(){
  try{
-  const {data,error}=await db.auth.signInAnonymously();
-  if(error)throw error;
-  user=data.user;status("オンライン接続済み");
+  let {data:sessionData,error:sessionError}=await db.auth.getSession();
+  if(sessionError)throw sessionError;
+  user=sessionData?.session?.user||null;
+  if(!user){
+   const {data,error}=await db.auth.signInAnonymously();
+   if(error)throw error;
+   user=data.user;
+  }status("オンライン接続済み");
   await restoreRoom();loadStats();
  }catch(e){
   status("接続エラー："+e.message);
@@ -409,7 +414,7 @@ async function startSync(){
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"game_chat_messages",filter:"room_id=eq."+room.id},()=>loadChat())
   .subscribe();
  if(poller)clearInterval(poller);
- poller=setInterval(refresh,1200);
+ poller=setInterval(()=>{if(!document.hidden)refresh()},4000);
  if(ticker)clearInterval(ticker);
  ticker=setInterval(tick,200);
  if(room.status==="playing")loadChat();
