@@ -313,6 +313,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 /* Cinematic victory / defeat finish overlay */
 .result-overlay{position:fixed;inset:0;z-index:45;display:grid;place-items:center;padding:18px;background:rgba(18,44,55,.77);backdrop-filter:blur(7px)}.result-overlay.hidden{display:none}.result-card{position:relative;overflow:hidden;width:min(450px,100%);border-radius:26px;padding:28px 22px 24px;text-align:center;border:4px solid #fff0b6;background:linear-gradient(155deg,#fff9dc,#d2f5df 55%,#a5dfce);box-shadow:0 20px 80px #102f4380,0 0 0 6px #ffffff30;animation:resultEnter .7s cubic-bezier(.18,1.35,.3,1)}.result-overlay.lose .result-card{border-color:#a9a3c9;background:linear-gradient(155deg,#e5e3ef,#c7ccdf 65%,#b3bcd1)}.result-kicker{font-weight:900;letter-spacing:.25em;font-size:13px;color:#6c927e}.result-symbol{font-size:76px;line-height:1.2;filter:drop-shadow(0 8px 3px #356e5a30);animation:resultFloat 2s ease-in-out infinite alternate}.result-headline{font-size:clamp(31px,8vw,49px);margin:5px 0 10px;color:#4d9c75;text-shadow:2px 3px #fff7d6;font-weight:1000;letter-spacing:.08em}.lose .result-headline{color:#77718d;text-shadow:1px 2px #fff}.result-description{font-size:15px;line-height:1.7;font-weight:800;color:#526e68;margin:0 0 20px}.result-overlay.lose .result-description{color:#6d6a80}.result-card button{width:100%;max-width:290px;min-height:46px}.result-sparkles{position:absolute;inset:0;pointer-events:none;overflow:hidden}.result-sparkles i{position:absolute;top:-15%;left:var(--x);width:9px;height:18px;background:var(--c);border-radius:3px;opacity:0;animation:confettiFall var(--d) linear infinite;animation-delay:var(--delay)}.lose .result-sparkles{display:none}@keyframes resultEnter{from{transform:translateY(45px) scale(.75);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}@keyframes resultFloat{to{transform:translateY(-7px) rotate(4deg)}}@keyframes confettiFall{10%{opacity:1}90%{opacity:1}to{top:110%;transform:rotate(620deg);opacity:0}}@media(prefers-reduced-motion:reduce){.result-card,.result-symbol,.result-sparkles i{animation:none!important}}
 .pixel-island{image-rendering:pixelated;shape-rendering:crispEdges}#game .board-wrap{background:#72cbd3}#game .cell{border-radius:4px;border:2px solid #cba86c;background:linear-gradient(180deg,#fff2c4,#ead19a);box-shadow:0 3px 0 #aa8659,0 4px 0 #725b4380}#game .cell.start{border-color:#8ac8a5}#game .cell.goal{border-color:#e5b86a}
+.idle-warning{background:#fff0cc;border:2px solid #e9b45e;color:#925c2e;border-radius:10px;padding:7px;font-size:12px;font-weight:900;text-align:center;margin:5px 0}
 </style>
 </head>
 <body>
@@ -339,7 +340,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <button class="gold-btn wide" id="joinBtn" style="margin-top:8px">この部屋に参加</button>
  </div>
  <div id="status">サーバーに接続しています…</div>
- <div class="rule-note">ルール：先攻決めの後、各フェーズ10秒。ダウト成功で嘘をついた側が3マス後退。ダウト失敗で疑った側が3マス後退。</div>
+ <div class="rule-note">ルール：先攻決めの後、各フェーズ30秒。ダウト成功で嘘をついた側が3マス後退。ダウト失敗で疑った側が3マス後退。</div>
 </section>
 
 <section class="surface waiting hidden" id="waiting">
@@ -369,7 +370,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
  <div class="right-col">
   <div class="surface control">
    <div class="turn-banner" id="turnBanner" aria-live="polite">先攻決め</div><div class="phase-line"><span class="phase-tag" id="phaseTag">YOUR TURN</span><span class="timer" id="timer">--</span></div>
-   <div class="dice-stage" id="diceStage"><div class="die" id="dice"></div></div>
+   <div id="idleWarning" class="idle-warning hidden" role="alert"></div><div class="dice-stage" id="diceStage"><div class="die" id="dice"></div></div>
    <div class="private" id="privateRoll"></div>
    <div class="message" id="message">ゲーム開始！</div>
    <div class="action-area hidden" id="setupArea"><h3>先攻を決めよう</h3><p id="setupHint">お互いにサイコロを振ってね。</p><div class="start-dice-pair" id="startDicePair"><div class="start-die-card"><span>あなた</span><strong id="startMine">？</strong></div><div class="start-die-card"><span>相手</span><strong id="startOpponent">？</strong></div></div><div class="setup-result" id="setupResult"></div><button class="gold-btn wide" id="setupRollBtn">先攻決めのサイコロを振る</button></div>
@@ -744,7 +745,7 @@ function render(){
  if(finished)onGameFinished();
  tick();
 }
-let startRevealFinishedFor="";
+let startRevealFinishedFor="",idleCheckBusy=false;
 function tick(){
  if(game&&game.phase==="roll"&&Array.isArray(game.setupRolls)){
   const ready=Number(game.startReadyAt||0);
@@ -755,6 +756,7 @@ function tick(){
   }
  }
  if(!game||game.finished){
+  show("idleWarning",false);
   $("timer").textContent="--";$("timer").classList.remove("danger");return;
  }
  if(game.phase==="setup"){
@@ -762,6 +764,15 @@ function tick(){
   $("timer").textContent=left?String(left):"GO";$("timer").classList.remove("danger");return;
  }
  if(Array.isArray(game.setupRolls)&&Date.now()<Number(game.startReadyAt||0)){$("timer").textContent=String(Math.ceil((Number(game.startReadyAt)-Date.now())/1000));$("timer").classList.remove("danger");return;}
+ const idleSince=Number(game.lastHumanActionAt||0);
+ const idleMs=idleSince?Date.now()-idleSince:0;
+ const idleTarget=Number(game.idlePlayer??game.turn);
+ if(idleSince&&idleMs>=120000&&!game.finished){
+  const seconds=Math.max(0,Math.ceil((150000-idleMs)/1000));
+  $("idleWarning").textContent=(idleTarget===myIndex?"操作してください！":"相手が操作していません。")+" あと"+seconds+"秒で放置による強制敗北になります。";
+  show("idleWarning",true);
+  if(idleMs>=150000&&!idleCheckBusy&&!busy){idleCheckBusy=true;action("idle_forfeit").finally(()=>idleCheckBusy=false)}
+ }else show("idleWarning",false);
  const deadline=Number(game.deadline||0);
  if(!deadline){$("timer").textContent="--";return}
  const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));
