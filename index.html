@@ -308,6 +308,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
  #game .chat-panel{z-index:1}
  #game .board-panel{min-height:0!important}
 }
+.turn-banner{font-weight:900;font-size:clamp(14px,2.5vw,19px);letter-spacing:.04em;text-align:center;border-radius:12px;padding:9px 10px;margin-bottom:6px;background:#f2e7c9;color:#826944;border:2px solid #e6d19c;box-shadow:0 3px 0 #d7c7a6}.turn-banner.mine{background:#d4f4e4;color:#24745e;border-color:#7ecba9;box-shadow:0 3px 0 #79bfa3;animation:turnGlow 1.5s ease-in-out infinite alternate}.turn-banner.theirs{background:#e8e4f5;color:#6e6397;border-color:#bcb0de;box-shadow:0 3px 0 #aaa1c9}@keyframes turnGlow{to{filter:brightness(1.06)}}.board-wrap{background:radial-gradient(ellipse at 45% 38%,#b6f0df 0%,#75d0c7 60%,#3fa9b5 100%)}@media(max-width:760px){#game .turn-banner{font-size:14px;padding:5px 8px;margin-bottom:3px;border-radius:9px}#game .control{padding-top:5px}#game .board-wrap{border-color:#eaf6d8}}
 </style>
 </head>
 <body>
@@ -375,7 +376,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
      <g fill="#f5d889"><circle cx="250" cy="250" r="7"/><circle cx="385" cy="330" r="8"/><circle cx="220" cy="340" r="6"/><circle cx="350" cy="190" r="6"/></g>
      <path d="M65 420Q105 395 145 420M470 85Q510 65 545 90" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>
      <path d="M70 120q18 -14 36 0m-20 18q18 -14 36 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".5"/>
-    </svg>
+    <g opacity=".8" fill="none" stroke="#f5ffef" stroke-width="4" stroke-linecap="round"><path d="M18 175q14 -12 28 0m-22 12q14 -12 28 0"/><path d="M520 340q16 -10 32 0m-26 12q16 -10 32 0"/><path d="M45 295q12 -9 24 0m-18 12q12 -9 24 0"/><path d="M490 450q14 -10 28 0"/></g><g fill="#fff8d8" opacity=".95"><circle cx="155" cy="300" r="4"/><circle cx="420" cy="360" r="5"/><circle cx="335" cy="130" r="3"/><circle cx="240" cy="385" r="4"/></g><g fill="#e98c9f" stroke="#fff4d7" stroke-width="2"><circle cx="210" cy="215" r="5"/><circle cx="395" cy="260" r="5"/><circle cx="310" cy="365" r="5"/></g><g fill="#fff7c4"><circle cx="208" cy="213" r="2"/><circle cx="393" cy="258" r="2"/><circle cx="308" cy="363" r="2"/></g><g fill="#4d9677" opacity=".9"><path d="M245 290l-14 -10 17 4 -2 -18 8 19 15 -11 -10 18z"/><path d="M355 205l-12 -9 14 3 2 -15 6 17 14 -9 -9 15z"/><path d="M185 340l-13 -8 15 2 1 -15 7 17 13 -8 -7 15z"/></g><g fill="none" stroke="#fff7d8" stroke-width="4" opacity=".65" stroke-linecap="round"><path d="M135 245Q170 255 185 280"/><path d="M375 380Q420 360 440 320"/><path d="M260 155Q300 140 345 157"/></g></svg>
     <div id="board"></div>
    </div>
    <div class="board-legend"><span>START · 0</span><span>島を一周してGOALへ</span><span>GOAL · 30</span></div>
@@ -383,7 +384,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
  </div>
  <div class="right-col">
   <div class="surface control">
-   <div class="phase-line"><span class="phase-tag" id="phaseTag">YOUR TURN</span><span class="timer" id="timer">--</span></div>
+   <div class="turn-banner" id="turnBanner" aria-live="polite">先攻決め</div><div class="phase-line"><span class="phase-tag" id="phaseTag">YOUR TURN</span><span class="timer" id="timer">--</span></div>
    <div class="dice-stage" id="diceStage"><div class="die" id="dice"></div></div>
    <div class="private" id="privateRoll"></div>
    <div class="message" id="message">ゲーム開始！</div>
@@ -717,8 +718,12 @@ function render(){
  show("declareArea",!finished&&!setup&&phase==="declare"&&game.turn===myIndex);
  show("challengeArea",!finished&&!setup&&phase==="challenge"&&game.turn!==myIndex);
  show("finishedArea",finished);
- $("phaseTag").textContent=finished?"GAME FINISHED":setup?"START ROLL":game.turn===myIndex?"YOUR TURN":"OPPONENT TURN";
- const opponentActing=!finished&&!setup&&!reveal&&game.turn!==myIndex&&(phase==="roll"||phase==="declare");
+ const canAct=!finished&&!setup&&!reveal&&((phase==="roll"||phase==="declare")?game.turn===myIndex:phase==="challenge"&&game.turn!==myIndex);
+ const turnBanner=$("turnBanner");
+ turnBanner.classList.toggle("mine",canAct);turnBanner.classList.toggle("theirs",!canAct&&!setup&&!reveal&&!finished);
+ turnBanner.textContent=finished?"対戦終了":setup?"先攻・後攻を決めよう":reveal?"先攻・後攻が決定！":canAct?"あなたの操作です！":phase==="challenge"?"相手があなたの判断を待っています":"相手の番・行動待ち";
+ $("phaseTag").textContent=finished?"対戦終了":setup?"先攻決め":reveal?"まもなく開始":canAct?"あなたの番":"相手の番";
+ const opponentActing=!finished&&!setup&&!reveal&&!canAct;
  $("message").textContent=opponentActing?"相手の行動を待っています…":game.message||"";
  $("leaveFromSettings").classList.toggle("hidden",!room||room.status!=="playing");
  // Hide the dice when waiting for the opponent; never reveal their private roll.
