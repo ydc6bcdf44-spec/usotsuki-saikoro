@@ -702,6 +702,51 @@ async function action(type,value=null){
   await refresh();
  }finally{busy=false}
 }
+
+let lastRenderedPositions=null,lastCutInKey="",cutInTimer=null,lastCountdownKey="",lastCountdownSecond=99;
+function soundSequence(notes,vol=.05){
+ if(!$("sfxToggle").checked)return;
+ try{initAudio();const volume=Number($("sfxVolume").value)/100*vol;
+  notes.forEach(([freq,delay,duration])=>{const at=audio.currentTime+delay,o=audio.createOscillator(),g=audio.createGain();o.type="triangle";o.frequency.value=freq;g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Math.max(.0002,volume),at+.015);g.gain.exponentialRampToValueAtTime(.0001,at+duration);o.connect(g);g.connect(audio.destination);o.start(at);o.stop(at+duration+.02)});
+ }catch(e){}
+}
+function startMusicOnInteraction(){if($("bgmToggle").checked&&!bgmTimer){try{toggleBgm()}catch(e){}}}
+document.addEventListener("pointerdown",startMusicOnInteraction,{passive:true});
+document.addEventListener("keydown",startMusicOnInteraction);
+function showDoubtCutin(){
+ if(!game||!room)return;
+ const msg=String(game.message||""),success=msg.includes("ダウト成功"),fail=msg.includes("ダウト失敗");
+ if(!success&&!fail)return;
+ const key=room.id+":"+msg+":"+(game.deadline||"")+":"+game.turn;
+ if(key===lastCutInKey)return;
+ lastCutInKey=key;
+ $("cutinTitle").textContent=success?"ダウト成功！":"ダウト失敗…";
+ $("cutinKicker").textContent=success?"BLUFF CAUGHT!":"TRUST BROKEN!";
+ $("cutinDetail").textContent=success?"嘘がバレた！3マス後退":"本当だった！疑った人が3マス後退";
+ $("doubtCutin").classList.toggle("fail",fail);show("doubtCutin",true);
+ soundSequence(success?[[440,0,.12],[660,.12,.18],[880,.28,.3]]:[[400,0,.14],[270,.15,.19],[190,.34,.28]]);
+ clearTimeout(cutInTimer);cutInTimer=setTimeout(()=>show("doubtCutin",false),1600);
+}
+function animateTokens(pos){
+ const prev=lastRenderedPositions;lastRenderedPositions=[...pos];
+ if(!prev)return;
+ for(let i=0;i<2;i++){if(pos[i]===prev[i])continue;const cell=document.querySelectorAll("#board .cell")[pos[i]];if(cell){cell.classList.add("token-hop")}}
+}
+function recordLocalHistory(won){
+ if(!room||!user)return;
+ const key="island-match-history:"+user.id;
+ try{const old=JSON.parse(localStorage.getItem(key)||"[]");if(old.some(x=>x.id===room.id))return;old.unshift({id:room.id,won,date:new Date().toISOString(),opponent:game?.players?.[1-myIndex]||"対戦相手"});localStorage.setItem(key,JSON.stringify(old.slice(0,30)))}catch(e){}
+}
+function renderLocalHistory(){
+ const target=$("matchHistory");if(!target||!user)return;target.replaceChildren();
+ let items=[];try{items=JSON.parse(localStorage.getItem("island-match-history:"+user.id)||"[]")}catch(e){}
+ if(!items.length){target.textContent="この端末の対戦履歴はまだありません。";return}
+ for(const item of items.slice(0,12)){const el=document.createElement("div"),left=document.createElement("span"),right=document.createElement("span");left.textContent=(item.won?"勝利":"敗北")+" · "+item.opponent;right.textContent=new Date(item.date).toLocaleDateString("ja-JP");el.append(left,right);target.append(el)}
+}
+function playVictoryFanfare(){
+ stopBgm();if(!$("bgmToggle").checked)return;
+ try{initAudio();[523.25,659.25,783.99,1046.5,783.99,1046.5,1318.51].forEach((hz,i)=>{const at=audio.currentTime+i*.16,o=audio.createOscillator(),g=audio.createGain();o.type="triangle";o.frequency.value=hz;g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Number($("bgmVolume").value)/100*.055,at+.02);g.gain.exponentialRampToValueAtTime(.0001,at+.3);o.connect(g);g.connect(audio.destination);o.start(at);o.stop(at+.32)})}catch(e){}
+}
 function drawBoard(){
  const board=$("board");board.replaceChildren();
  const pos=Array.isArray(game?.pos)?game.pos:[0,0];
@@ -735,6 +780,8 @@ function render(){
   $("card"+i).classList.toggle("active",!finished&&game.turn===i);
  }
  drawBoard();
+ animateTokens(pos);
+ showDoubtCutin();
  const setup=phase==="setup";
  if(setup)syncStartRollLock();
  const reveal=!setup&&Array.isArray(game.setupRolls)&&Date.now()<Number(game.startReadyAt||0);
@@ -808,6 +855,7 @@ function tick(){
  const deadline=Number(game.deadline||0);
  if(!deadline){$("timer").textContent="--";return}
  const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));
+ if(left>=1&&left<=5){const key=(room?.id||"")+":"+deadline;if(lastCountdownKey!==key){lastCountdownKey=key;lastCountdownSecond=99}if(lastCountdownSecond!==left){lastCountdownSecond=left;soundSequence([[left===1?1040:740,0,.11]],.065)}}
  $("timer").textContent=String(left);$("timer").classList.toggle("danger",left<=3);
  if(left===0&&!timeoutBusy&&!busy&&Date.now()>=Number(game.startReadyAt||0)){
   timeoutBusy=true;action("timeout").finally(()=>timeoutBusy=false);
@@ -852,7 +900,9 @@ function onGameFinished(){
   $("resultDescription").textContent=mine?"ゴール到達！島の冒険を制覇したよ！":"今回は相手が先にゴール。次こそリベンジ！";
   const sparkles=$("resultSparkles");sparkles.replaceChildren();
   if(mine)for(let i=0;i<34;i++){const dot=document.createElement("i");dot.style.setProperty("--x",Math.random()*100+"%");dot.style.setProperty("--c",["#f4d66c","#a4d7ca","#f4a6b5","#fff","#a5b4f0"][i%5]);dot.style.setProperty("--d",(1.7+Math.random()*1.8)+"s");dot.style.setProperty("--delay",(-Math.random()*3)+"s");sparkles.append(dot)}
+  recordLocalHistory(mine);
   show("resultOverlay",true);finishSound(mine);
+  if(mine)playVictoryFanfare();
  }
 
  if(room&&!game.matchRecorded){
@@ -891,6 +941,8 @@ function goTitle(){
  stopSync();if(bannerTimer)clearTimeout(bannerTimer);
  room=null;game=null;myIndex=-1;ownRoll=null;busy=false;rolling=false;
  setupSubmitted=-1;setupAuto=-1;bannerKey=null;
+ lastRenderedPositions=null;lastCutInKey="";lastCountdownKey="";show("doubtCutin",false);
+ if($("bgmToggle").checked&&!bgmTimer)startMusicOnInteraction();
  show("lobby",true);show("waiting",false);show("game",false);
  show("matchBanner",false);show("leaveBanner",false);
  status("タイトルに戻りました");
@@ -936,6 +988,9 @@ async function loadStats(){
  $("statPlayed").textContent=data?.games_played??0;
  $("statWins").textContent=data?.wins??0;
  $("statStreak").textContent=data?.current_streak??0;
+ $("statBest").textContent=data?.best_streak??0;
+ $("statRate").textContent=data?.games_played?Math.round((data.wins||0)/data.games_played*100)+"%":"0%";
+ renderLocalHistory();
  $("statsNote").textContent=data?
   ("敗北："+data.losses+"回 ／ 最高連勝："+data.best_streak+"回"):
   "まだ対戦記録がありません。対戦終了後に記録されます。";
