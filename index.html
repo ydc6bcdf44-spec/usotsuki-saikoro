@@ -461,7 +461,7 @@ function showMatchBanner(){
 async function setupRoll(){
  if(!room||!game||game.phase!=="setup"||busy)return;
  const attempt=Number(game.setupAttempt||0);
- if(Date.now()<Number(game.matchFoundAt||0)+3000||setupSubmitted===attempt)return;
+ if(Date.now()<timestampMs(game.matchFoundAt)+3000||setupSubmitted===attempt)return;
  busy=true;$("setupRollBtn").disabled=true;
  const n=1+Math.floor(Math.random()*6);animateDie(n);
  try{
@@ -536,7 +536,7 @@ function render(){
  $("phaseTag").textContent=finished?"GAME FINISHED":setup?"START ROLL":game.turn===myIndex?"YOUR TURN":"OPPONENT TURN";
  $("message").textContent=game.message||"";
  if(setup){
-  const ready=Number(game.matchFoundAt||0)+3000;
+  const ready=timestampMs(game.matchFoundAt)+3000;
   const wait=Date.now()<ready,a=Number(game.setupAttempt||0);
   $("setupRollBtn").disabled=wait||busy||setupSubmitted===a;
   $("setupHint").textContent=wait?"対戦開始の準備中…":setupSubmitted===a?"相手のサイコロを待っています":"サイコロを振って先攻を決めよう";
@@ -558,7 +558,7 @@ function tick(){
   $("timer").textContent="--";$("timer").classList.remove("danger");return;
  }
  if(game.phase==="setup"){
-  const left=Math.max(0,Math.ceil((Number(game.matchFoundAt||0)+3000-Date.now())/1000));
+  const left=Math.max(0,Math.ceil((timestampMs(game.matchFoundAt)+3000-Date.now())/1000));
   $("timer").textContent=left?String(left):"GO";$("timer").classList.remove("danger");return;
  }
  const deadline=Number(game.deadline||0);
