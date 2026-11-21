@@ -264,6 +264,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
  <div class="setting-row"><span>BGM音量</span><input class="range" type="range" id="bgmVolume" min="0" max="100" value="35"></div>
  <div class="setting-row"><span>効果音音量</span><input class="range" type="range" id="sfxVolume" min="0" max="100" value="65"></div>
  <p style="font-size:10px;color:#9aaca1;line-height:1.7">音声は最初の操作後に再生されます。設定はこの端末のブラウザ内に保存されます。</p>
+ <button class="danger wide" id="leaveFromSettings" type="button">対戦を途中退出する</button>
  <button class="primary wide" id="closeSettings">閉じる</button>
 </div></div>
 <div class="modal-backdrop hidden" id="statsModal"><div class="surface modal">
@@ -562,6 +563,7 @@ function render(){
  show("finishedArea",finished);
  $("phaseTag").textContent=finished?"GAME FINISHED":setup?"START ROLL":game.turn===myIndex?"YOUR TURN":"OPPONENT TURN";
  $("message").textContent=game.message||"";
+ $("leaveFromSettings").classList.toggle("hidden",!room||room.status!=="playing");
  // Hide the dice when waiting for the opponent; never reveal their private roll.
  const waitingForOpponent=(setup&&setupSubmitted===Number(game.setupAttempt||0))||(!setup&&!finished&&((phase==="roll"||phase==="declare")&&game.turn!==myIndex));
  show("diceStage",!waitingForOpponent);
@@ -781,6 +783,15 @@ $("settingsBtn").onclick=()=>{
  toggleBgm();
 };
 $("closeSettings").onclick=()=>show("settingsModal",false);
+$("leaveFromSettings").onclick=async()=>{
+ if(!room||room.status!=="playing")return;
+ if(!confirm("対戦を途中退出しますか？ 相手との対戦も終了します。"))return;
+ $("leaveFromSettings").disabled=true;
+ try{
+  await leaveRoom();
+  if(!room)show("settingsModal",false);
+ }finally{$("leaveFromSettings").disabled=false}
+};
 
 $("statsBtn").onclick=()=>{
  loadStats();show("statsModal",true);
