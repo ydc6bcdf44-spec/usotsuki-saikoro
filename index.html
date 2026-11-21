@@ -301,6 +301,13 @@ button:disabled{opacity:.45;cursor:not-allowed}
  #game .chat-actions button{min-height:27px}
  #game .chat-panel .chat-log{flex-basis:25px;height:25px;min-height:25px}
 }
+@media(max-width:760px){
+ #game .control{max-height:none!important;overflow:visible!important;z-index:3}
+ #game .action-area:not(.hidden){display:block;position:relative;z-index:4}
+ #game #rollBtn,#game #setupRollBtn{position:relative;z-index:5;touch-action:manipulation;pointer-events:auto;min-height:42px}
+ #game .chat-panel{z-index:1}
+ #game .board-panel{min-height:0!important}
+}
 </style>
 </head>
 <body>
@@ -740,7 +747,16 @@ function render(){
  if(finished)onGameFinished();
  tick();
 }
+let startRevealFinishedFor="";
 function tick(){
+ if(game&&game.phase==="roll"&&Array.isArray(game.setupRolls)){
+  const ready=Number(game.startReadyAt||0);
+  const key=(room?.id||"")+":"+ready;
+  if(ready>0&&Date.now()>=ready&&startRevealFinishedFor!==key){
+   startRevealFinishedFor=key;
+   render();
+  }
+ }
  if(!game||game.finished){
   $("timer").textContent="--";$("timer").classList.remove("danger");return;
  }
