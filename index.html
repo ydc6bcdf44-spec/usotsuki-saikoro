@@ -284,6 +284,18 @@ button:disabled{opacity:.45;cursor:not-allowed}
  #game .avatar{width:27px;height:27px}
  #game .action-area p{margin:1px 0}
 }
+
+/* iPhone 16 Safari: respect Dynamic Island/top browser chrome and bottom toolbar */
+@supports (-webkit-touch-callout:none){
+ @media(max-width:760px){
+  body:has(#game:not(.hidden)){
+   padding-top:max(14px,env(safe-area-inset-top,0px));
+   padding-bottom:max(20px,env(safe-area-inset-bottom,0px));
+  }
+  body:has(#game:not(.hidden)) .header{min-height:38px;margin-bottom:6px}
+  #game:not(.hidden){gap:5px}
+ }
+}
 </style>
 </head>
 <body>
