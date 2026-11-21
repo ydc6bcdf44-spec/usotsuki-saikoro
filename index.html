@@ -507,15 +507,23 @@ function showMatchBanner(){
  if(bannerTimer)clearTimeout(bannerTimer);
  bannerTimer=setTimeout(()=>show("matchBanner",false),stamp?Math.max(0,3000-(Date.now()-stamp)):3000);
 }
+function startRollStorageKey(attempt){return "island-start-roll:"+room?.id+":"+attempt}
+function syncStartRollLock(){
+ if(room&&game?.phase==="setup"){
+  const attempt=Number(game.setupAttempt||0);
+  if(localStorage.getItem(startRollStorageKey(attempt))==="submitted")setupSubmitted=attempt;
+ }
+}
 async function setupRoll(){
  if(!room||!game||game.phase!=="setup"||busy)return;
  const attempt=Number(game.setupAttempt||0);
+ syncStartRollLock();
  if(setupSubmitted===attempt)return;
  if(user?.id!==room.host_id&&user?.id!==room.guest_id){
   $("setupHint").textContent="参加者情報が一致しません。タイトルに戻って再マッチしてください";
   return;
  }
- busy=true;$("setupRollBtn").disabled=true;
+ busy=true;setupSubmitted=attempt;localStorage.setItem(startRollStorageKey(attempt),"submitted");$("setupRollBtn").disabled=true;
  const n=1+Math.floor(Math.random()*6);animateDie(n);
  try{
   const {data,error}=await db.rpc("submit_start_roll",{p_room_id:room.id,p_roll:n});
@@ -534,7 +542,7 @@ async function setupRoll(){
   if(data.status==="waiting")$("setupHint").textContent="あなたの出目は保存済み。相手を待っています";
   else $("setupHint").textContent=data.status==="tie"?"同じ目！振り直し":"先攻・後攻が決まりました！";
  }catch(e){
-  setupSubmitted=-1;
+  setupSubmitted=-1;localStorage.removeItem(startRollStorageKey(attempt));
   const msg="先攻決めエラー："+e.message;
   status(msg);$("setupHint").textContent=msg;
  }finally{
@@ -548,7 +556,7 @@ function autoReroll(){
  setupAuto=a;$("setupResult").textContent="同じ目！もう一度振り直します";
  setTimeout(()=>{
   if(game?.phase==="setup"&&Number(game.setupAttempt||0)===a){
-   setupSubmitted=-1;setupRoll();
+   syncStartRollLock();render();
   }
  },1000);
 }
@@ -599,6 +607,7 @@ function render(){
  }
  drawBoard();
  const setup=phase==="setup";
+ if(setup)syncStartRollLock();
  show("setupArea",setup);
  show("rollArea",!finished&&!setup&&phase==="roll"&&game.turn===myIndex);
  show("declareArea",!finished&&!setup&&phase==="declare"&&game.turn===myIndex);
