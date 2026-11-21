@@ -379,6 +379,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
 #game #board .cell .n{position:relative;z-index:2;font-size:clamp(7px,1.15vw,10px);line-height:1.05;color:#614e48;text-shadow:0 1px #fff8d9;letter-spacing:-.02em}
 #game #board .cell.start .n,#game #board .cell.goal .n{font-size:clamp(5px,.85vw,8px);letter-spacing:-.06em}
 @media(max-width:480px){#game #board .cell .n{font-size:7px}#game #board .cell.start .n,#game #board .cell.goal .n{font-size:5px}}
+/* Image-based clean pixel-art tiles */
+#game #board .cell,#game #board .cell:nth-child(3n),#game #board .cell:nth-child(5n),#game #board .cell.start,#game #board .cell.goal{background:transparent url("./assets/pixel-stone.svg") center/100% 100% no-repeat!important;border:0!important;border-radius:0!important;clip-path:none!important;box-shadow:none!important;filter:drop-shadow(0 2px 1px #345b5140)!important;overflow:visible!important}
+#game #board .cell::before,#game #board .cell::after{content:none!important;display:none!important}
+#game #board .cell.start{filter:drop-shadow(0 0 3px #5bcba5)!important}
+#game #board .cell.goal{filter:drop-shadow(0 0 4px #f3ce68)!important}
+#game #board .cell .n{color:#63564c;text-shadow:0 1px #fff9e7;font-weight:900}
 </style>
 </head>
 <body>
