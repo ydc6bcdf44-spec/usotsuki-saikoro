@@ -296,6 +296,45 @@ button:disabled{opacity:.45;cursor:not-allowed}
   #game:not(.hidden){gap:5px}
  }
 }
+
+/* iPhone 16: prioritize readable controls and a reliably visible island map */
+@media(max-width:760px){
+ body:has(#game:not(.hidden)){overflow:auto;height:auto;min-height:100dvh;padding:8px 9px max(26px,env(safe-area-inset-bottom,0px))}
+ body:has(#game:not(.hidden)) .shell{height:auto;min-height:0;display:block}
+ body:has(#game:not(.hidden)) .header{margin-bottom:8px;min-height:40px}
+ #game:not(.hidden){display:flex;flex-direction:column;overflow:visible;gap:8px;min-height:0}
+ #game .left-col,#game .right-col{display:contents}
+ #game .players{order:0;padding:7px}
+ #game .board-panel{order:1;display:block;min-height:0;height:auto;padding:8px}
+ #game .board-heading{display:flex;padding:2px 4px 7px}
+ #game .board-wrap{display:block;position:relative;width:100%;height:auto;min-height:0;aspect-ratio:1.1;flex:none}
+ #game .control{order:2;padding:12px}
+ #game .chat-panel{order:3;padding:10px}
+ #game .chat-panel .panel-title{display:flex}
+ #game .chat-log{display:flex;height:54px;min-height:54px;padding:6px}
+ #game .chat-actions{gap:6px;margin-top:7px}
+ #game .chat-actions button{font-size:13px;min-height:38px;padding:8px 4px}
+ #game .brand h1{font-size:17px}
+ #game .player-info strong{font-size:13px}
+ #game .player-info small{font-size:11px}
+ #game .avatar{width:42px;height:42px}
+ #game .phase-tag{font-size:12px}
+ #game .timer{font-size:24px}
+ #game .message,#game .private{font-size:13px;line-height:1.6}
+ #game .action-area h3{font-size:16px}
+ #game .action-area p{font-size:13px;line-height:1.5}
+ #game .action-area button{font-size:14px;min-height:42px;padding:10px}
+ #game .number-btn{font-size:15px;padding:10px 0}
+ #game .dice-stage{width:78px;height:78px;margin:7px auto}
+ #game .die{width:55px;height:55px;padding:8px}
+ #game .cell .n{font-size:10px}
+ #game .cell img{width:clamp(25px,7vw,39px);height:clamp(25px,7vw,39px)}
+}
+@supports(-webkit-touch-callout:none){
+ @media(max-width:760px){
+  body:has(#game:not(.hidden)){padding-top:max(12px,env(safe-area-inset-top,0px));padding-bottom:max(30px,env(safe-area-inset-bottom,0px))}
+ }
+}
 </style>
 </head>
 <body>
