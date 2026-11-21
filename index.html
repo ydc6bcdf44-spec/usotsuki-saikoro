@@ -461,15 +461,15 @@ function showMatchBanner(){
 async function setupRoll(){
  if(!room||!game||game.phase!=="setup"||busy)return;
  const attempt=Number(game.setupAttempt||0);
- if(Date.now()<timestampMs(game.matchFoundAt)+3000||setupSubmitted===attempt)return;
+ if(setupSubmitted===attempt){$("setupHint").textContent="相手のサイコロを待っています";return;}
  busy=true;$("setupRollBtn").disabled=true;
  const n=1+Math.floor(Math.random()*6);animateDie(n);
  try{
   const {error}=await db.rpc("submit_start_roll",{p_room_id:room.id,p_roll:n});
   if(error)throw error;
   setupSubmitted=attempt;await refresh();
- }catch(e){status("先攻決めエラー："+e.message);$("setupRollBtn").disabled=false}
- finally{busy=false}
+ }catch(e){const msg="先攻決めエラー："+e.message;status(msg);$("setupHint").textContent=msg;$("setupRollBtn").disabled=false}
+ finally{busy=false; if(game?.phase==="setup")$("setupRollBtn").disabled=setupSubmitted===Number(game.setupAttempt||0)}
 }
 function autoReroll(){
  if(!game||game.phase!=="setup"||!Array.isArray(game.setupRolls))return;
@@ -538,7 +538,7 @@ function render(){
  if(setup){
   const ready=timestampMs(game.matchFoundAt)+3000;
   const wait=Date.now()<ready,a=Number(game.setupAttempt||0);
-  $("setupRollBtn").disabled=wait||busy||setupSubmitted===a;
+  $("setupRollBtn").disabled=busy||setupSubmitted===a;
   $("setupHint").textContent=wait?"対戦開始の準備中…":setupSubmitted===a?"相手のサイコロを待っています":"サイコロを振って先攻を決めよう";
   $("setupResult").textContent=Array.isArray(game.setupRolls)?"PLAYER 1："+game.setupRolls[0]+" ／ PLAYER 2："+game.setupRolls[1]:"";
   diceFace(5);$("privateRoll").textContent="";
