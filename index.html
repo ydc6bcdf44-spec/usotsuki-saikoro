@@ -923,6 +923,21 @@ function finishSound(won){
  if(!$("sfxToggle").checked)return;
  try{initAudio();const now=audio.currentTime;const notes=won?[523.25,659.25,783.99,1046.5]:[392,349.23,293.66,261.63];notes.forEach((freq,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.type=won?"triangle":"sine";o.frequency.value=freq;const t=now+i*(won?.14:.24);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.06,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+.36);o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+.38)})}catch(e){}
 }
+const matchStatsInFlight=new Set();
+const matchStatsCompleted=new Set();
+async function saveFinishedMatchStats(roomId){
+ if(!roomId||matchStatsInFlight.has(roomId)||matchStatsCompleted.has(roomId))return;
+ matchStatsInFlight.add(roomId);
+ try{
+  const {error}=await db.rpc("record_match_result",{p_room_id:roomId});
+  if(error)throw error;
+  matchStatsCompleted.add(roomId);
+  await loadStats();
+ }catch(e){
+  const note=$("statsNote");if(note)note.textContent="戦績のサーバー保存に失敗しました："+(e?.message||"通信エラー")+"。次回表示時に再試行します。";
+  console.warn("Match stats save failed",e);
+ }finally{matchStatsInFlight.delete(roomId)}
+}
 function onGameFinished(){
  if(!game?.finished)return;
  const winner=Number(game.winner),mine=winner===myIndex;
@@ -944,11 +959,7 @@ function onGameFinished(){
   if(mine)playVictoryFanfare();
  }
 
- if(room&&!game.matchRecorded){
-  db.rpc("record_match_result",{p_room_id:room.id}).then(({error})=>{
-   if(!error)loadStats();
-  });
- }
+ if(room)saveFinishedMatchStats(room.id);
 }
 function opponentLeft(message){
  stopSync();localStorage.removeItem(ROOM_KEY);
@@ -1020,10 +1031,11 @@ async function loadChat(){
 }
 async function loadStats(){
  if(!user)return;
+ renderLocalHistory();
  const {data,error}=await db.from("game_player_stats")
   .select("games_played,wins,losses,current_streak,best_streak")
   .eq("user_id",user.id).maybeSingle();
- if(error){$("statsNote").textContent="戦績を読み込めませんでした。";return}
+ if(error){renderLocalHistory();$("statsNote").textContent="サーバー戦績を読み込めませんでした："+error.message;return}
  $("statPlayed").textContent=data?.games_played??0;
  $("statWins").textContent=data?.wins??0;
  $("statStreak").textContent=data?.current_streak??0;
@@ -1031,7 +1043,7 @@ async function loadStats(){
  $("statRate").textContent=data?.games_played?Math.round((data.wins||0)/data.games_played*100)+"%":"0%";
  renderLocalHistory();
  $("statsNote").textContent=data?
-  ("敗北："+data.losses+"回 ／ 最高連勝："+data.best_streak+"回"):
+  ("敗北："+(data.losses??0)+"回 ／ 最高連勝："+(data.best_streak??0)+"回"):
   "まだ対戦記録がありません。対戦終了後に記録されます。";
 }function initAudio(){
  if(!audio)audio=new(window.AudioContext||window.webkitAudioContext)();
