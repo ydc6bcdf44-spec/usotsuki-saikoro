@@ -412,6 +412,11 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <div class="banner hidden" id="matchBanner"><div class="banner-card"><div style="font-size:10px;letter-spacing:.22em;color:#a0b3a5">MATCH FOUND</div><h2 id="bannerTitle">対戦相手が見つかりました</h2><p id="bannerText">まもなく先攻決めが始まります。</p></div></div>
 <div class="banner hidden" id="leaveBanner"><div class="banner-card"><div style="font-size:10px;letter-spacing:.22em;color:#ba8d80">MATCH ENDED</div><h2 id="leaveTitle">対戦が終了しました</h2><p id="leaveText">相手が退出しました。</p><button class="primary wide" id="leaveBackBtn">タイトルへ戻る</button></div></div><div class="result-overlay hidden" id="resultOverlay" role="dialog" aria-modal="true" aria-labelledby="resultHeadline"><div class="result-card"><div class="result-sparkles" id="resultSparkles"></div><div class="result-kicker" id="resultKicker">ISLAND ADVENTURE</div><div class="result-symbol" id="resultSymbol" aria-hidden="true">★</div><h2 class="result-headline" id="resultHeadline">VICTORY!</h2><p class="result-description" id="resultDescription"></p><button class="primary" id="resultBackBtn" type="button">タイトルへ戻る</button></div></div>
 <script>
+window.addEventListener("error",function(e){var el=document.getElementById("status");if(el)el.textContent="起動エラー："+(e.message||"不明なエラー")});
+window.addEventListener("unhandledrejection",function(e){var el=document.getElementById("status");if(el)el.textContent="通信・処理エラー："+(e.reason?.message||String(e.reason||"不明なエラー"))});
+window.addEventListener("DOMContentLoaded",function(){var el=document.getElementById("status");if(el&&el.textContent.includes("サーバーに接続しています"))el.textContent="ゲームを起動しています…"});
+</script>
+<script>
 "use strict";
 const SUPABASE_URL="https://pggwvveeprbnowrarbff.supabase.co";
 const SUPABASE_KEY="sb_publishable_zk1iWPtsHN8GkWIDRHeLrw_Yr9iMZWT";
@@ -934,8 +939,8 @@ function toggleBgm(){
  if(!bgmTimer){playBgmNote();bgmTimer=setInterval(playBgmNote,360)}
 }
 
-$("createBtn").onclick=createRoom;
-$("randomBtn").onclick=randomMatch;
+$("createBtn").onclick=()=>{status("部屋を作成しています…");createRoom()};
+$("randomBtn").onclick=()=>{status("ランダムマッチを開始しています…");randomMatch()};
 $("showJoinBtn").onclick=()=>show("joinArea",true);
 $("joinBtn").onclick=()=>joinRoom($("joinCode").value.trim().toUpperCase());
 
@@ -1031,7 +1036,7 @@ $("avatar0").src=svgData(crabSvg);
 $("avatar1").src=svgData(octoSvg);
 loadSettings();
 diceFace(5);
-connect();
+try{connect()}catch(e){status("起動エラー："+e.message)}
 </script>
 
 </body>
