@@ -529,15 +529,8 @@ async function setupRoll(){
   const {data,error}=await db.rpc("submit_start_roll",{p_room_id:room.id,p_roll:n});
   if(error)throw error;
   if(!data||!["waiting","tie","started"].includes(data.status))throw Error("先攻決めの保存結果を確認できません");
-  const {data:saved,error:checkError}=await db.from("game_start_rolls")
-   .select("player_id,attempt").eq("room_id",room.id).eq("player_id",user.id).eq("attempt",attempt).maybeSingle();
-  // Both rolls are deleted by the server after the second roll, so a missing row
-  // is valid only if the room has already advanced to the next phase or attempt.
-  if(checkError)throw checkError;
+  // The server RPC is SECURITY DEFINER; clients must not read private roll rows.
   await refresh();
-  if(data.status==="waiting"&&!saved&&game?.phase==="setup"&&Number(game.setupAttempt||0)===attempt){
-   throw Error("出目が保存されていません。もう一度振ってください");
-  }
   setupSubmitted=attempt;
   if(data.status==="waiting")$("setupHint").textContent="あなたの出目は保存済み。相手を待っています";
   else $("setupHint").textContent=data.status==="tie"?"同じ目！振り直し":"先攻・後攻が決まりました！";
