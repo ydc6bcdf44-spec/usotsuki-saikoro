@@ -562,6 +562,9 @@ function render(){
  show("finishedArea",finished);
  $("phaseTag").textContent=finished?"GAME FINISHED":setup?"START ROLL":game.turn===myIndex?"YOUR TURN":"OPPONENT TURN";
  $("message").textContent=game.message||"";
+ // Hide the dice when waiting for the opponent; never reveal their private roll.
+ const waitingForOpponent=(setup&&setupSubmitted===Number(game.setupAttempt||0))||(!setup&&!finished&&((phase==="roll"||phase==="declare")&&game.turn!==myIndex));
+ show("diceStage",!waitingForOpponent);
  if(setup){
   const ready=timestampMs(game.matchFoundAt)+3000;
   const wait=Date.now()<ready,a=Number(game.setupAttempt||0);
