@@ -1,632 +1,445 @@
-
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>嘘つきサイコロ - Island Adventure</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#102f35">
+<title>嘘つきサイコロ — ISLAND ADVENTURE</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap');
+:root{--night:#102f35;--deep:#17434a;--sea:#1d6970;--mint:#a8dfc7;--foam:#e8f8e9;--sand:#f3dca8;--gold:#e8b85c;--coral:#ef856f;--ink:#18383b;--muted:#6d8985;--paper:#fffaf0;--line:#d9e7d7;--shadow:0 18px 50px #09292d35}
 *{box-sizing:border-box}
-:root{--pink:#df8fa5;--brown:#725b4d;--cream:#fffaf0}
-body{margin:0;padding:10px;background:#b8e8ed;color:#594d51;font-family:system-ui,sans-serif;text-align:center;background-image:radial-gradient(#ffffff80 2px,transparent 2px);background-size:25px 25px}
-main{max-width:850px;margin:auto}
-h1{color:#d36e91;font-size:clamp(22px,4vw,30px);text-shadow:2px 2px white;margin:8px}
-p{line-height:1.5;margin:8px}
-.panel{background:var(--cream);border:3px solid #eacb9d;border-radius:18px;padding:12px;margin:10px 0;box-shadow:0 4px 0 #d6b68c}
-input{width:100%;padding:12px;margin:6px 0;border:2px solid #e8c99d;border-radius:12px;font-size:16px;text-align:center}
-button{border:2px solid #dba6a8;border-radius:13px;padding:11px 15px;font-size:15px;margin:4px;background:var(--pink);color:white;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.4;cursor:not-allowed}
-button.secondary{background:#eee0c7;color:var(--brown);border-color:#d8c29e}
-button.green{background:#83b99b;border-color:#83b99b}
-button.pink{background:#d77b9d}
-button.number{background:#f1c878;border-color:#dfb35c;color:#684d3d;font-size:19px;min-width:44px}
+html{min-height:100%;background:var(--night)}
+body{margin:0;min-height:100vh;padding:clamp(10px,2.4vw,28px);font-family:"DM Sans","Noto Sans JP",sans-serif;color:var(--ink);background:radial-gradient(ellipse at 15% 0%,#276b70 0,transparent 35%),radial-gradient(ellipse at 90% 15%,#20575c 0,transparent 32%),linear-gradient(145deg,#102f35,#17454b 55%,#102f35);overflow-x:hidden}
+button,input{font:inherit}
+button{border:0;cursor:pointer;transition:transform .16s,filter .16s,box-shadow .16s}
+button:hover:not(:disabled){filter:brightness(1.06);transform:translateY(-1px)}
+button:active:not(:disabled){transform:translateY(1px)}
+button:disabled{opacity:.42;cursor:not-allowed}
 .hidden{display:none!important}
-.small{font-size:12px;color:#987f6d}
-#status{min-height:22px;color:#b96e82;font-weight:bold}
-#roomCode{font-size:30px;letter-spacing:5px;color:#c8798b;font-weight:bold}
-.topline{display:flex;justify-content:space-around;gap:8px}
-.player-card{flex:1;background:#fff0df;border-radius:15px;padding:8px;min-width:0}
-.player-card.active{outline:3px solid #e8a3b1}
-.player-card img{width:58px;height:58px;object-fit:contain}
-.player-card b{display:block;margin-top:3px}
-.timer{font-size:30px;font-weight:bold;color:#d27c85;background:#fff0e6;border-radius:14px;padding:5px;margin:7px auto;max-width:130px}
-.timer.danger{color:#e34d62;animation:pulse .5s infinite alternate}
-@keyframes pulse{to{transform:scale(1.08)}}
-.dice{font-size:58px;min-height:68px;margin:4px}
-.dice.rolling{animation:shake .12s infinite}
-@keyframes shake{0%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}100%{transform:rotate(-12deg)}}
-#message{min-height:38px;line-height:1.5;font-weight:bold;color:#986d69}
-#bgmBtn{background:#85b8a1;border-color:#85b8a1}
-#gameLayout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(260px,.8fr);gap:10px;align-items:start}
-#boardWrap{position:relative;overflow:hidden;border-radius:22px;border:4px solid #8bc8bd;background:linear-gradient(160deg,#63cbd3,#a6e5d9 48%,#6bc8ce);padding:8px;isolation:isolate;aspect-ratio:1.12}
-#islandArt{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.shell{width:min(1160px,100%);margin:auto}
+.header{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#e8f8e9;margin:0 auto 18px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand-mark{width:46px;height:46px;border-radius:15px;background:linear-gradient(145deg,#f5d58b,#e9a95d);display:grid;place-items:center;box-shadow:0 6px 0 #9e7040;color:#24474a;font-size:20px;font-weight:900}
+.brand h1{font-size:clamp(18px,3vw,25px);letter-spacing:.05em;margin:0;font-weight:900}
+.brand small{display:block;color:#b8d8ce;font-size:10px;letter-spacing:.22em;margin-top:3px}
+.header-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{background:#ffffff14;color:#eaf8ed;border:1px solid #ffffff30;border-radius:12px;padding:10px 13px;font-size:12px;font-weight:800}
+.surface{background:var(--paper);border:1px solid #fff8e9;border-radius:24px;box-shadow:var(--shadow)}
+.lobby{max-width:560px;margin:24px auto;padding:clamp(20px,4vw,34px);position:relative;overflow:hidden}
+.lobby:before{content:"";position:absolute;width:230px;height:230px;border-radius:50%;background:#d7efda;right:-105px;top:-115px;opacity:.55}
+.eyebrow{font-size:10px;letter-spacing:.24em;color:#71928a;font-weight:900;text-transform:uppercase}
+.lobby h2{font-size:clamp(27px,5vw,40px);line-height:1.2;margin:8px 0;color:var(--deep);position:relative}
+.lobby-copy{color:#66817b;font-size:13px;line-height:1.8;margin:0 0 22px}
+.field-label{display:block;font-size:11px;font-weight:900;color:#59766f;margin:14px 0 6px}
+.field{width:100%;border:1px solid #d7e4d8;background:#fff;border-radius:13px;padding:14px 15px;color:var(--ink);outline:none;transition:border .15s,box-shadow .15s}
+.field:focus{border-color:#58a68e;box-shadow:0 0 0 3px #58a68e22}
+.primary,.secondary,.danger,.gold-btn{border-radius:13px;padding:13px 16px;font-weight:900;font-size:13px}
+.primary{background:linear-gradient(135deg,#246d69,#174c52);color:white;box-shadow:0 4px 0 #0d383d}
+.gold-btn{background:linear-gradient(135deg,#f4d58e,#e7b35d);color:#4c4128;box-shadow:0 4px 0 #b9853f}
+.secondary{background:#e6f0e7;color:#285b54;border:1px solid #cfe1d2}
+.danger{background:#f9e5df;color:#a64e43;border:1px solid #efc5b9}
+.wide{width:100%}
+.lobby-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.rule-note{margin-top:20px;border-top:1px solid #e3e9dc;padding-top:15px;color:#81938a;font-size:11px;line-height:1.8}
+#status{min-height:20px;margin-top:14px;color:#a35c48;font-size:12px;font-weight:800}
+.waiting{text-align:center;padding:28px 22px}
+.room-code{font-size:clamp(36px,9vw,54px);letter-spacing:.2em;font-weight:900;color:#1d6260;margin:8px 0 14px}
+.game{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,.82fr);gap:16px;align-items:start}
+.left-col,.right-col{min-width:0;display:grid;gap:14px}
+.players{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
+.player{background:#f1f5e9;border:1px solid #dfe8d9;border-radius:17px;padding:12px;display:flex;align-items:center;gap:11px;min-width:0;position:relative}
+.player.active{outline:3px solid #e6b85d;background:#fff7df}
+.avatar{width:55px;height:55px;flex:none}
+.player-info{min-width:0;text-align:left}
+.player-info strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.player-info small{display:block;color:#779087;font-size:10px;margin-top:3px}
+.progress{height:6px;border-radius:20px;background:#dce8d8;margin-top:8px;overflow:hidden}
+.progress span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#68ad89,#e6bd67);transition:width .35s}
+.board-panel{padding:14px}
+.board-heading{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 10px}
+.board-heading h3{margin:0;font-size:12px;letter-spacing:.18em;color:#52746b}
+.board-heading span{font-size:10px;color:#8aa096}
+.board-wrap{position:relative;width:100%;aspect-ratio:1.1;border-radius:20px;overflow:hidden;background:linear-gradient(160deg,#6dc9c2,#b4e5ce 48%,#3e9b9a);border:5px solid #d9edce;isolation:isolate}
+.island-svg{position:absolute;inset:0;width:100%;height:100%;z-index:0}
 #board{position:absolute;inset:0;z-index:1}
-.cell{position:absolute;width:9.1%;height:10.5%;transform:translate(-50%,-50%);border:2px solid #d7b77e;border-radius:11px;background:linear-gradient(#fff1c9,#f6dba8);display:flex;flex-direction:column;justify-content:center;align-items:center;box-shadow:0 2px 0 #c8a36e;font-size:10px;font-weight:bold;color:#806d5c}
-.cell:nth-child(3n){background:linear-gradient(#e9f1c0,#d6e6a8)}
-.cell.start{background:#a8dfc2}
-.cell.goal{background:linear-gradient(#ffe88d,#f4bd55);border-color:#d79c45}
-.cell.me{outline:3px solid #e4778c;outline-offset:-2px}
-.cell.enemy{outline:3px solid #a98bd4;outline-offset:-2px}
-.tokens{display:flex;align-items:center;justify-content:center;height:75%;gap:0}
-.tokens img{width:clamp(22px,4vw,38px);height:clamp(22px,4vw,38px);object-fit:contain;margin:0 -4px;filter:drop-shadow(0 2px 1px #8c7770)}
-.cell .number{font-size:clamp(8px,1.3vw,11px);line-height:1}
-#numberChoices{display:flex;justify-content:center;flex-wrap:wrap;gap:2px}
-#rollArea button,#setupArea button{min-width:170px}
-#setupArea{background:#fff0e6;border:2px dashed #e6b5a8;border-radius:15px;padding:10px;margin:8px 0}
-#setupResult{font-size:19px;font-weight:bold;color:#b96e82;min-height:28px}
-#matchBanner{position:fixed;inset:0;z-index:10;background:#594d51dd;display:flex;align-items:center;justify-content:center;padding:20px}
-#matchBanner>div{background:#fffaf0;border:4px solid #eacb9d;border-radius:25px;padding:30px 20px;max-width:360px;width:100%;animation:pop .45s ease-out}
-#matchBanner h2{color:#d36e91}
-@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
-#matchBanner .big{font-size:45px}
-#controlPanel{min-width:0}
-footer{font-size:11px;color:#8f8177;margin:14px}
-@media(max-width:650px){
- body{padding:5px}
- .panel{padding:8px;margin:7px 0}
- #gameLayout{grid-template-columns:1fr;gap:5px}
- #boardWrap{max-height:390px;aspect-ratio:1.15}
- .cell{width:9.5%;height:11%}
- .cell .number{font-size:9px}
- .tokens img{width:clamp(23px,6vw,34px);height:clamp(23px,6vw,34px)}
- #controlPanel{padding:8px}
- .player-card img{width:46px;height:46px}
- .timer{font-size:25px;padding:3px;margin:4px auto}
- .dice{font-size:45px;min-height:48px;margin:2px}
- button{padding:9px 12px;margin:3px}
-}
+.cell{position:absolute;width:8.8%;height:10%;transform:translate(-50%,-50%);border:1.5px solid #b98b4c;border-radius:9px;background:linear-gradient(160deg,#fff1c8,#e8c78a);box-shadow:0 2px 0 #a47a43;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#6c5739;font-weight:900}
+.cell:nth-child(3n){background:linear-gradient(160deg,#e5f0c2,#b9d99e);border-color:#7ca66f}
+.cell.start{background:linear-gradient(160deg,#c4f0d2,#6cba91);border-color:#47876a}
+.cell.goal{background:linear-gradient(160deg,#fff0a8,#e8ad4c);border-color:#b87b2e}
+.cell .n{font-size:clamp(7px,1.15vw,11px);line-height:1}
+.cell .tokens{display:flex;align-items:center;justify-content:center;height:72%;gap:0}
+.cell img{width:clamp(19px,3.3vw,36px);height:clamp(19px,3.3vw,36px);object-fit:contain;filter:drop-shadow(0 3px 2px #395e4c66);margin:0 -5px}
+.board-legend{display:flex;justify-content:space-between;padding:9px 4px 0;color:#7d9488;font-size:10px}
+.control{padding:18px}
+.phase-line{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.phase-tag{font-size:10px;font-weight:900;letter-spacing:.16em;color:#588075;background:#e5f1e6;border-radius:30px;padding:7px 10px}
+.timer{font-size:27px;font-weight:900;color:#24665f;font-variant-numeric:tabular-nums}
+.timer.danger{color:#d45b4b;animation:pulse .45s infinite alternate}
+@keyframes pulse{to{transform:scale(1.08)}}
+.dice-stage{display:grid;place-items:center;margin:13px auto 8px;width:112px;height:112px;border-radius:25px;background:radial-gradient(circle at 35% 25%,#fff,#f7e6b8 72%,#e7c477);border:1px solid #e8d39e;box-shadow:inset 0 -7px 0 #d8b76f,0 9px 18px #7e78501a}
+.die{font-size:62px;line-height:1;color:#1a4d4e;text-shadow:0 2px 0 #fff}
+.rolling .die{animation:shake .11s infinite}
+@keyframes shake{0%{transform:rotate(-12deg) scale(1.03)}50%{transform:rotate(12deg) scale(.97)}100%{transform:rotate(-12deg) scale(1.03)}}
+.private{min-height:17px;text-align:center;color:#8a9c8f;font-size:10px;font-weight:700}
+.message{min-height:52px;margin:12px 0;padding:12px;border-radius:13px;background:#f0f4e9;color:#496a5f;text-align:center;font-size:12px;font-weight:800;line-height:1.7;display:grid;place-items:center}
+.action-area{border-top:1px solid #e4eadf;padding-top:13px;text-align:center}
+.action-area h3{margin:0 0 9px;font-size:14px;color:#285b54}
+.action-area p{font-size:11px;color:#83958a;margin:0 0 10px}
+.number-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.number-btn{padding:11px 0;border-radius:11px;background:#f5e2b5;color:#67502d;font-size:17px;font-weight:900;box-shadow:0 3px 0 #d3b26d}
+.challenge-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.roll-btn{width:100%;margin-top:4px}
+.setup-result{min-height:22px;color:#8c6843;font-size:12px;font-weight:900;margin:6px}
+.utility-row{display:flex;gap:8px;flex-wrap:wrap}
+.utility-row button{flex:1;min-width:95px}
+.chat-panel,.stats-panel{padding:16px}
+.panel-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.panel-title h3{margin:0;color:#41685f;font-size:12px;letter-spacing:.14em}
+.chat-log{height:128px;overflow:auto;background:#f2f6ec;border-radius:12px;padding:9px;display:flex;flex-direction:column;gap:6px}
+.chat-msg{align-self:flex-start;max-width:90%;background:#fff;border:1px solid #e2eadf;border-radius:10px;padding:7px 9px;font-size:11px;color:#47675e}
+.chat-msg.mine{align-self:flex-end;background:#e2f0e5}
+.chat-msg small{display:block;color:#96a69b;font-size:9px;margin-top:3px}
+.chat-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.chat-actions button{padding:8px 4px;font-size:10px;border-radius:10px;background:#e8f0e5;color:#47675e;font-weight:800}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.stat{background:#f0f5e9;border-radius:12px;padding:10px;text-align:center}
+.stat strong{display:block;font-size:19px;color:#28635b}
+.stat small{font-size:9px;color:#7c9588}
+.modal-backdrop{position:fixed;inset:0;z-index:30;background:#061f23c9;display:grid;place-items:center;padding:16px}
+.modal{width:min(440px,100%);max-height:85vh;overflow:auto;padding:22px}
+.modal h2{margin:0 0 15px;color:#255a54;font-size:20px}
+.setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #e5ebdf;font-size:12px;color:#5c786d}
+.setting-row input{accent-color:#2e7b69;width:18px;height:18px}
+.range{width:130px;accent-color:#2e7b69}
+.banner{position:fixed;inset:0;z-index:25;background:#0b292bdc;display:grid;place-items:center;padding:20px}
+.banner-card{width:min(360px,100%);padding:30px 22px;text-align:center;border-radius:25px;background:var(--paper);border:2px solid #f2d99e;box-shadow:var(--shadow);animation:pop .4s ease-out}
+.banner-card h2{color:#245f59;margin:12px 0 5px}
+.banner-card p{font-size:12px;color:#779087}
+@keyframes pop{from{transform:scale(.78);opacity:0}to{transform:scale(1);opacity:1}}
+.footer{text-align:center;color:#9fc5b9;font-size:9px;letter-spacing:.2em;margin:20px 0 5px}
+@media(max-width:760px){body{padding:10px}.header{margin-bottom:12px}.game{grid-template-columns:1fr;gap:10px}.left-col,.right-col{gap:10px}.board-wrap{aspect-ratio:1.13}.cell{width:9.1%;height:10.3%}.cell img{width:clamp(20px,5vw,33px);height:clamp(20px,5vw,33px)}.control{padding:14px}.chat-log{height:110px}}
+@media(max-width:420px){.brand-mark{width:39px;height:39px}.header-actions .icon-btn{padding:9px}.player{padding:9px;gap:8px}.avatar{width:45px;height:45px}.player-info strong{font-size:11px}.player-info small{font-size:9px}.lobby-actions{grid-template-columns:1fr}.dice-stage{width:94px;height:94px}.die{font-size:53px}.number-btn{padding:10px 0}}
 </style>
 </head>
 <body>
-<main>
-<h1>🏝️ 嘘つきサイコロ</h1>
-<p>うそを見破って、島の30マスを冒険しよう！</p>
+<div class="shell">
+<header class="header">
+ <div class="brand"><div class="brand-mark">IA</div><div><h1>嘘つきサイコロ</h1><small>ISLAND ADVENTURE · ONLINE</small></div></div>
+ <div class="header-actions"><button class="icon-btn" id="settingsBtn">設定</button><button class="icon-btn" id="statsBtn">戦績</button></div>
+</header>
 
-<div class="panel">
- <div id="status">接続中...</div>
- <div id="loginArea">
-  <p>プレイヤー名を入力してね</p>
-  <input id="playerName" maxlength="12" placeholder="プレイヤー名">
-  <button id="createBtn">🏝️ ルームを作る</button>
-  <p>招待コードで参加</p>
-  <input id="joinCode" maxlength="6" placeholder="招待コード">
-  <button id="joinBtn" class="secondary">ルームに参加</button>
-  <hr style="border:0;border-top:1px solid #ead8c8;margin:13px 0">
-  <button id="randomBtn" class="pink">🎲 ランダムマッチ</button>
+<section class="surface lobby" id="lobby">
+ <div class="eyebrow">A JOURNEY OF BLUFF & LUCK</div>
+ <h2>うそを見破って、<br>島の頂上を目指そう。</h2>
+ <p class="lobby-copy">サイコロの出目を自由に宣言。相手を信じるか、ダウトするか。先に30マスへ到達したプレイヤーの勝利。</p>
+ <label class="field-label" for="playerName">プレイヤー名</label>
+ <input class="field" id="playerName" maxlength="12" placeholder="名前を入力">
+ <button class="primary wide" id="createBtn" style="margin-top:12px">部屋を作成する</button>
+ <div class="lobby-actions">
+  <button class="secondary" id="randomBtn">ランダムマッチ</button>
+  <button class="secondary" id="showJoinBtn">招待コードで参加</button>
  </div>
- <div id="waitingArea" class="hidden">
-  <p>🌴 招待コードを友達に教えてね！</p>
-  <div id="roomCode"></div>
-  <p class="small">相手が参加するまで待ってね</p>
-  <button id="copyBtn" class="secondary">コードをコピー</button>
+ <div id="joinArea" class="hidden">
+  <label class="field-label" for="joinCode">招待コード</label>
+  <input class="field" id="joinCode" maxlength="6" placeholder="6桁のコード">
+  <button class="gold-btn wide" id="joinBtn" style="margin-top:8px">この部屋に参加</button>
  </div>
-</div>
+ <div id="status">サーバーに接続しています…</div>
+ <div class="rule-note">ルール：先攻決めの後、各フェーズ10秒。ダウト成功で嘘をついた側が3マス後退。ダウト失敗で疑った側が3マス後退。</div>
+</section>
 
-<div id="gameArea" class="hidden">
- <div class="panel">
-  <div class="topline">
-   <div class="player-card" id="card0">
-    <img id="avatar0" alt="カニ">
-    <div id="player0">PLAYER 1</div>
-    <b id="p0">0 / 30</b>
-   </div>
-   <div class="player-card" id="card1">
-    <img id="avatar1" alt="タコ">
-    <div id="player1">PLAYER 2</div>
-    <b id="p1">0 / 30</b>
-   </div>
+<section class="surface waiting hidden" id="waiting">
+ <div class="eyebrow">ROOM CREATED</div><h2 style="margin:8px 0;color:#245e58">対戦相手を待っています</h2>
+ <p style="font-size:12px;color:#789087">この招待コードを相手に共有してください。</p>
+ <div class="room-code" id="roomCode">------</div>
+ <button class="gold-btn" id="copyBtn">コードをコピー</button>
+ <p style="font-size:11px;color:#8a9b91;margin:14px 0 0">相手が参加すると、自動でゲームが始まります。</p>
+ <button class="danger" id="cancelWaitingBtn" style="margin-top:20px">部屋を解散する</button>
+</section>
+
+<section class="game hidden" id="game">
+ <div class="left-col">
+  <div class="surface players">
+   <div class="player" id="card0"><img class="avatar" id="avatar0" alt="プレイヤー1"><div class="player-info"><strong id="player0">PLAYER 1</strong><small id="playerPos0">0 / 30 マス</small><div class="progress"><span id="progress0" style="width:0%"></span></div></div></div>
+   <div class="player" id="card1"><img class="avatar" id="avatar1" alt="プレイヤー2"><div class="player-info"><strong id="player1">PLAYER 2</strong><small id="playerPos1">0 / 30 マス</small><div class="progress"><span id="progress1" style="width:0%"></span></div></div></div>
   </div>
- </div>
-
- <div id="gameLayout">
-  <div class="panel">
-   <h3>ISLAND ADVENTURE</h3>
-   <div id="boardWrap">
-    <svg id="islandArt" viewBox="0 0 600 520" preserveAspectRatio="none" aria-hidden="true">
-     <defs>
-      <linearGradient id="sand" x2="0" y2="1"><stop stop-color="#f8e4b4"/><stop offset="1" stop-color="#e9bd7e"/></linearGradient>
-      <linearGradient id="water" x2="0" y2="1"><stop stop-color="#a0e4df"/><stop offset="1" stop-color="#54b9bd"/></linearGradient>
-     </defs>
-     <ellipse cx="300" cy="260" rx="270" ry="225" fill="url(#sand)" stroke="#e8c18b" stroke-width="12"/>
-     <ellipse cx="300" cy="260" rx="250" ry="205" fill="none" stroke="#fff0c8" stroke-width="9" stroke-dasharray="7 13"/>
-     <path d="M160 210 Q205 135 300 150 Q410 125 460 215 Q495 290 420 345 Q340 405 220 355 Q120 315 160 210Z" fill="#a9d89b"/>
-     <path d="M215 230 Q260 175 325 195 Q390 185 415 250 Q430 310 350 330 Q260 350 205 295Z" fill="#8fc98a"/>
-     <path d="M248 250 Q290 215 345 245 Q380 275 350 310 Q295 330 250 295Z" fill="#78b981"/>
-     <g stroke="#8b6548" stroke-width="10" stroke-linecap="round" fill="none">
-      <path d="M210 230 Q205 190 225 160"/><path d="M390 280 Q410 235 400 205"/>
-     </g>
-     <g fill="#4d9e70" stroke="#387e5b" stroke-width="3">
-      <path d="M225 160 Q165 145 158 110 Q202 112 225 160 Q190 95 210 80 Q235 116 225 160 Q245 95 280 95 Q270 135 225 160 Q275 130 300 155 Q260 175 225 160Z"/>
-      <path d="M400 205 Q345 190 340 155 Q382 160 400 205 Q375 145 395 125 Q417 160 400 205 Q425 145 460 155 Q450 190 400 205 Q450 180 478 205 Q440 220 400 205Z"/>
-     </g>
-     <g fill="#f7d98e" opacity=".9">
-      <circle cx="300" cy="240" r="10"/><circle cx="325" cy="275" r="7"/><circle cx="270" cy="290" r="6"/>
-     </g>
-     <path d="M85 390 Q120 370 150 390 M450 100 Q485 85 510 105" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".6"/>
+  <div class="surface board-panel">
+   <div class="board-heading"><h3>THE ISLAND MAP</h3><span>START → GOAL · 30 STEPS</span></div>
+   <div class="board-wrap">
+    <svg class="island-svg" viewBox="0 0 600 540" preserveAspectRatio="none" aria-hidden="true">
+     <defs><linearGradient id="shore" x2="0" y2="1"><stop stop-color="#f7e7b7"/><stop offset="1" stop-color="#dfb975"/></linearGradient><linearGradient id="grass" x2="0" y2="1"><stop stop-color="#b8dc9d"/><stop offset="1" stop-color="#6fae79"/></linearGradient></defs>
+     <ellipse cx="300" cy="270" rx="280" ry="245" fill="url(#shore)" stroke="#f9e9c5" stroke-width="13"/>
+     <ellipse cx="300" cy="270" rx="258" ry="222" fill="none" stroke="#fff7dc" stroke-width="7" stroke-dasharray="5 14"/>
+     <path d="M120 235Q140 115 270 115Q400 75 480 190Q535 295 430 385Q330 455 190 395Q80 340 120 235Z" fill="url(#grass)"/>
+     <path d="M180 240Q220 155 320 165Q420 155 445 245Q465 335 360 370Q250 405 175 325Z" fill="#86c38b"/>
+     <path d="M235 260Q270 210 340 225Q400 245 380 310Q330 355 260 325Z" fill="#6fb47f"/>
+     <path d="M285 270Q305 245 340 265Q360 290 335 315Q300 325 280 300Z" fill="#d8bd83"/>
+     <g stroke="#795b3d" stroke-width="10" stroke-linecap="round" fill="none"><path d="M175 235Q165 185 190 145"/><path d="M430 285Q455 230 440 190"/><path d="M300 170Q285 135 300 105"/></g>
+     <g fill="#398b68" stroke="#2e755b" stroke-width="3"><path d="M190 145Q130 135 125 95Q170 98 190 145Q160 78 185 58Q210 100 190 145Q220 78 260 90Q245 125 190 145Q245 125 275 150Q230 165 190 145Z"/><path d="M440 190Q390 175 385 140Q425 140 440 190Q420 125 445 110Q465 150 440 190Q470 130 505 145Q490 180 440 190Q490 170 520 195Q475 210 440 190Z"/><path d="M300 105Q265 75 280 45Q310 65 300 105Q315 50 345 48Q340 85 300 105Z"/></g>
+     <g fill="#f5d889"><circle cx="250" cy="250" r="7"/><circle cx="385" cy="330" r="8"/><circle cx="220" cy="340" r="6"/><circle cx="350" cy="190" r="6"/></g>
+     <path d="M65 420Q105 395 145 420M470 85Q510 65 545 90" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>
+     <path d="M70 120q18 -14 36 0m-20 18q18 -14 36 0" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" opacity=".5"/>
     </svg>
     <div id="board"></div>
    </div>
-   <p class="small">STARTからGOALまで進もう！</p>
+   <div class="board-legend"><span>START · 0</span><span>島を一周してGOALへ</span><span>GOAL · 30</span></div>
   </div>
-
-  <div id="controlPanel" class="panel">
-   <div id="turn"></div>
-   <div id="timer" class="timer">--</div>
-   <div class="small" id="timerLabel">残り時間</div>
-   <div class="dice" id="dice">🎲</div>
-   <div id="privateRoll" class="small"></div>
-   <div id="message">ゲーム開始！</div>
-
-   <div id="setupArea" class="hidden">
-    <h3>🎲 先攻を決めよう！</h3>
-    <p id="setupHint">お互いにサイコロを振ってね</p>
-    <div id="setupResult"></div>
-    <button id="setupRollBtn">先攻決めのサイコロを振る</button>
-   </div>
-
-   <div id="rollArea" class="hidden"><button id="rollBtn">🎲 サイコロを振る</button></div>
-   <div id="declareArea" class="hidden">
-    <p>宣言する数字を自由に選んでね！</p>
-    <div id="numberChoices">
-     <button class="number" data-number="1">1</button><button class="number" data-number="2">2</button><button class="number" data-number="3">3</button><button class="number" data-number="4">4</button><button class="number" data-number="5">5</button><button class="number" data-number="6">6</button>
-    </div>
-   </div>
-   <div id="challengeArea" class="hidden">
-    <p>相手の宣言を信じる？</p>
-    <button id="doubtBtn" class="pink">⚡ ダウト！</button>
-    <button id="believeBtn" class="green">信じる</button>
+ </div>
+ <div class="right-col">
+  <div class="surface control">
+   <div class="phase-line"><span class="phase-tag" id="phaseTag">YOUR TURN</span><span class="timer" id="timer">--</span></div>
+   <div class="dice-stage" id="diceStage"><div class="die" id="dice">⚄</div></div>
+   <div class="private" id="privateRoll"></div>
+   <div class="message" id="message">ゲーム開始！</div>
+   <div class="action-area hidden" id="setupArea"><h3>先攻を決めよう</h3><p id="setupHint">お互いにサイコロを振ってね。</p><div class="setup-result" id="setupResult"></div><button class="gold-btn wide" id="setupRollBtn">先攻決めのサイコロを振る</button></div>
+   <div class="action-area hidden" id="rollArea"><h3>あなたの番</h3><p>サイコロを振って、本当の出目を確認。</p><button class="primary roll-btn" id="rollBtn">サイコロを振る</button></div>
+   <div class="action-area hidden" id="declareArea"><h3>数字を宣言しよう</h3><p>本当の出目と違う数字を選んでもOK。</p><div class="number-grid" id="numberChoices"><button class="number-btn" data-number="1">1</button><button class="number-btn" data-number="2">2</button><button class="number-btn" data-number="3">3</button><button class="number-btn" data-number="4">4</button><button class="number-btn" data-number="5">5</button><button class="number-btn" data-number="6">6</button></div></div>
+   <div class="action-area hidden" id="challengeArea"><h3>相手の宣言をどうする？</h3><p>本当だと思う？それともダウト？</p><div class="challenge-grid"><button class="danger" id="doubtBtn">ダウト！</button><button class="gold-btn" id="believeBtn">信じる</button></div></div>
+   <div class="action-area hidden" id="finishedArea"><h3 id="winnerTitle">GAME OVER</h3><p id="winnerText"></p><button class="primary wide" id="finishedBackBtn">タイトルへ戻る</button></div>
+  </div>
+  <div class="surface chat-panel">
+   <div class="panel-title"><h3>QUICK CHAT</h3><span style="font-size:9px;color:#91a297">定型メッセージ</span></div>
+   <div class="chat-log" id="chatLog"><div class="chat-msg">対戦中のメッセージがここに表示されます。</div></div>
+   <div class="chat-actions">
+    <button data-chat="hello">よろしく！</button><button data-chat="suspicious">あやしい…</button><button data-chat="nice">ナイス！</button>
+    <button data-chat="oops">やっちゃった</button><button data-chat="hurry">急いで！</button><button data-chat="thanks">ありがとう</button>
    </div>
   </div>
  </div>
+</section>
+<div class="footer">ISLAND ADVENTURE · BLUFF YOUR WAY TO THE TOP</div>
 </div>
 
-<div class="panel">
- <button id="bgmBtn">🎵 BGM ON</button>
- <button id="backBtn" class="secondary">タイトルに戻る</button>
- <p class="small">オンライン対戦 / 2人用</p>
-</div>
-<footer>ISLAND ADVENTURE · LIAR DICE</footer>
-</main>
-
-<div id="matchBanner" class="hidden">
- <div>
-  <div class="big">🌴 🎉 🌴</div>
-  <h2 id="bannerTitle">対戦相手が見つかりました！</h2>
-  <p id="bannerText">まもなくゲーム開始！</p>
- </div>
-</div>
+<div class="modal-backdrop hidden" id="settingsModal"><div class="surface modal">
+ <h2>ゲーム設定</h2>
+ <div class="setting-row"><span>BGM</span><label><input type="checkbox" id="bgmToggle" checked></label></div>
+ <div class="setting-row"><span>効果音</span><label><input type="checkbox" id="sfxToggle" checked></label></div>
+ <div class="setting-row"><span>BGM音量</span><input class="range" type="range" id="bgmVolume" min="0" max="100" value="35"></div>
+ <div class="setting-row"><span>効果音音量</span><input class="range" type="range" id="sfxVolume" min="0" max="100" value="65"></div>
+ <p style="font-size:10px;color:#81948a;line-height:1.7">音声は最初の操作後に再生されます。設定はこの端末のブラウザ内に保存されます。</p>
+ <button class="primary wide" id="closeSettings">閉じる</button>
+</div></div>
+<div class="modal-backdrop hidden" id="statsModal"><div class="surface modal">
+ <h2>あなたの戦績</h2>
+ <div class="stat-grid"><div class="stat"><strong id="statPlayed">—</strong><small>対戦数</small></div><div class="stat"><strong id="statWins">—</strong><small>勝利</small></div><div class="stat"><strong id="statStreak">—</strong><small>連勝</small></div></div>
+ <p id="statsNote" style="font-size:10px;color:#81948a;line-height:1.7;margin:14px 0">ログイン後に戦績を読み込みます。</p>
+ <button class="primary wide" id="closeStats">閉じる</button>
+</div></div>
+<div class="banner hidden" id="matchBanner"><div class="banner-card"><div style="font-size:10px;letter-spacing:.22em;color:#8ca093">MATCH FOUND</div><h2 id="bannerTitle">対戦相手が見つかりました</h2><p id="bannerText">まもなく先攻決めが始まります。</p></div></div>
+<div class="banner hidden" id="leaveBanner"><div class="banner-card"><div style="font-size:10px;letter-spacing:.22em;color:#ba765b">MATCH ENDED</div><h2 id="leaveTitle">対戦が終了しました</h2><p id="leaveText">相手が退出しました。</p><button class="primary wide" id="leaveBackBtn">タイトルへ戻る</button></div></div>
 
 <script>
+"use strict";
 const SUPABASE_URL="https://pggwvveeprbnowrarbff.supabase.co";
 const SUPABASE_KEY="sb_publishable_zk1iWPtsHN8GkWIDRHeLrw_Yr9iMZWT";
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-
-let user=null,room=null,myIndex=-1,game=null,channel=null;
-let poller=null,timerLoop=null,busy=false,rolling=false;
-let ownRoll=null,timeoutBusy=false;
-let setupSubmittedAttempt=-1,setupAutoAttempt=-1;
-let matchBannerShownFor=null,matchBannerTimer=null;
 const $=id=>document.getElementById(id);
-const icons=["🦀","🐙"];
 const ROOM_KEY="liar_dice_room";
-const diceFaces=["","⚀","⚁","⚂","⚃","⚄","⚅"];
-
-function say(t){$("status").textContent=t}
-function playerName(){return $("playerName").value.trim().slice(0,12)||"プレイヤー"}
-function show(id,yes){$(id).classList.toggle("hidden",!yes)}
-
-function avatarSvg(type){
- if(type==="crab")return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="#9b384b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M25 48L9 36 7 20M75 48L91 36 93 20" fill="none"/><path d="M12 20Q0 5 15 5Q30 6 22 23M88 20Q100 5 85 5Q70 6 78 23" fill="#f08a91"/><path d="M29 68L18 83M43 72L38 89M57 72L62 89M71 68L82 83" fill="none"/><ellipse cx="50" cy="56" rx="34" ry="26" fill="#ed777f"/><path d="M30 38Q30 18 42 25Q50 12 58 25Q70 18 70 38" fill="#ffb4a9"/><ellipse cx="39" cy="46" rx="7" ry="9" fill="white"/><ellipse cx="61" cy="46" rx="7" ry="9" fill="white"/><circle cx="40" cy="47" r="3" fill="#493c48" stroke="none"/><circle cx="60" cy="47" r="3" fill="#493c48" stroke="none"/><path d="M44 61Q50 67 56 61" fill="none"/></g></svg>`;
- return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="#a34f91" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 61Q8 67 13 82Q17 94 29 83L34 72M38 70Q25 83 34 92Q43 98 49 82L51 72M57 72Q52 89 65 93Q77 94 70 72M70 65Q87 69 87 83Q86 94 75 84" fill="#ee9bd1"/><path d="M18 49Q14 17 50 13Q86 17 82 49Q82 73 50 76Q18 73 18 49Z" fill="#e987c5"/><ellipse cx="39" cy="43" rx="7" ry="9" fill="white"/><ellipse cx="61" cy="43" rx="7" ry="9" fill="white"/><circle cx="40" cy="44" r="3" fill="#493c48" stroke="none"/><circle cx="60" cy="44" r="3" fill="#493c48" stroke="none"/><path d="M44 57Q50 63 56 57" fill="none"/><circle cx="28" cy="54" r="5" fill="#f6b3d6" stroke="none"/><circle cx="72" cy="54" r="5" fill="#f6b3d6" stroke="none"/></g></svg>`;
-}
-function svgData(s){return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(s)}
-$("avatar0").src=svgData(avatarSvg("crab"));
-$("avatar1").src=svgData(avatarSvg("octopus"));
-
-function initialGame(host){
- return {players:[host,"プレイヤー2"],pos:[0,0],turn:0,phase:"waiting",real:null,claim:null,claimant:null,finished:false,winner:null,message:"相手の参加を待っています",deadline:null};
-}
-function makeCode(){return Math.random().toString(36).substring(2,8).toUpperCase()}
-
+const CHAT_TEXT={hello:"よろしく！",suspicious:"あやしい…",nice:"ナイス！",oops:"やっちゃった",hurry:"急いで！",thanks:"ありがとう"};
+const FACE=["","⚀","⚁","⚂","⚃","⚄","⚅"];
+let user=null,room=null,game=null,myIndex=-1,channel=null,poller=null,ticker=null;
+let busy=false,rolling=false,ownRoll=null,timeoutBusy=false,setupSubmitted=-1,setupAuto=-1;
+let bannerKey=null,bannerTimer=null,chatBusy=false,lastChatAt=0;
+let audio=null,bgmTimer=null,bgmOsc=null,bgmGain=null,bgmStep=0;
+const melody=[523.25,659.25,783.99,659.25,587.33,698.46,880,698.46,523.25,659.25,783.99,1046.5];
+const crabSvg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="#8f3945" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M25 48L9 36 7 20M75 48L91 36 93 20" fill="none"/><path d="M12 20Q0 5 15 5Q30 6 22 23M88 20Q100 5 85 5Q70 6 78 23" fill="#f5a08f"/><path d="M29 68L18 83M43 72L38 89M57 72L62 89M71 68L82 83" fill="none"/><ellipse cx="50" cy="56" rx="34" ry="26" fill="#ed777f"/><path d="M30 38Q30 18 42 25Q50 12 58 25Q70 18 70 38" fill="#ffc0a6"/><ellipse cx="39" cy="46" rx="7" ry="9" fill="white"/><ellipse cx="61" cy="46" rx="7" ry="9" fill="white"/><circle cx="40" cy="47" r="3" fill="#493c48" stroke="none"/><circle cx="60" cy="47" r="3" fill="#493c48" stroke="none"/><path d="M44 61Q50 67 56 61" fill="none"/></g></svg>`;
+const octoSvg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="#934c87" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 61Q8 67 13 82Q17 94 29 83L34 72M38 70Q25 83 34 92Q43 98 49 82L51 72M57 72Q52 89 65 93Q77 94 70 72M70 65Q87 69 87 83Q86 94 75 84" fill="#eea0d0"/><path d="M18 49Q14 17 50 13Q86 17 82 49Q82 73 50 76Q18 73 18 49Z" fill="#e987c5"/><ellipse cx="39" cy="43" rx="7" ry="9" fill="white"/><ellipse cx="61" cy="43" rx="7" ry="9" fill="white"/><circle cx="40" cy="44" r="3" fill="#493c48" stroke="none"/><circle cx="60" cy="44" r="3" fill="#493c48" stroke="none"/><path d="M44 57Q50 63 56 57" fill="none"/><circle cx="28" cy="54" r="5" fill="#f6b3d6" stroke="none"/><circle cx="72" cy="54" r="5" fill="#f6b3d6" stroke="none"/></g></svg>`;
+const svgData=s=>"data:image/svg+xml;charset=utf-8,"+encodeURIComponent(s);
+$("avatar0").src=svgData(crabSvg);$("avatar1").src=svgData(octoSvg);
+function show(id,on){$(id).classList.toggle("hidden",!on)}
+function status(t){$("status").textContent=t}
+function name(){return ($("playerName").value.trim()||"プレイヤー").slice(0,12)}
+function setGameVisible(){show("lobby",false);show("waiting",room?.status==="waiting");show("game",room?.status==="playing");}
+function safeText(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function initialState(n){return {players:[n,"プレイヤー2"],pos:[0,0],turn:0,phase:"waiting",real:null,claim:null,claimant:null,finished:false,winner:null,message:"相手の参加を待っています",deadline:null}}
+function newCode(){return Math.random().toString(36).slice(2,8).toUpperCase()}
 async function connect(){
- try{
-  const r=await db.auth.signInAnonymously();
-  if(r.error)throw r.error;
-  user=r.data.user;say("接続しました！");
-  await restoreRoom();
- }catch(e){
-  say("接続エラー："+e.message);
-  ["createBtn","joinBtn","randomBtn"].forEach(id=>$(id).disabled=true);
- }
+ try{const {data,error}=await db.auth.signInAnonymously();if(error)throw error;user=data.user;status("オンライン接続済み");await restoreRoom();loadStats();}
+ catch(e){status("接続エラー："+e.message);["createBtn","randomBtn","joinBtn"].forEach(id=>$(id).disabled=true)}
 }
-connect();
-
 async function restoreRoom(){
  const id=localStorage.getItem(ROOM_KEY);if(!id)return;
- const r=await db.from("game_rooms").select("*").eq("id",id).maybeSingle();
- if(r.error||!r.data)return;
- const row=r.data;
- if(row.host_id===user.id)myIndex=0;
- else if(row.guest_id===user.id)myIndex=1;
- else return;
- room=row;game=row.game_state;
- if(row.status==="waiting"){
-  show("loginArea",false);show("waitingArea",true);$("roomCode").textContent=row.code;
- }else if(row.status==="playing"){
-  show("loginArea",false);show("waitingArea",false);show("gameArea",true);
-  await loadOwnSecret();
- }
+ const {data,error}=await db.from("game_rooms").select("*").eq("id",id).maybeSingle();
+ if(error||!data){localStorage.removeItem(ROOM_KEY);return}
+ const row=data;
+ myIndex=row.host_id===user.id?0:row.guest_id===user.id?1:-1;
+ if(myIndex<0||!["waiting","playing"].includes(row.status)){localStorage.removeItem(ROOM_KEY);return}
+ room=row;game=row.game_state||{};setGameVisible();
+ if(row.status==="waiting")$("roomCode").textContent=row.code;
+ if(row.status==="playing")await loadOwnSecret();
  startSync();render();
 }
-
 async function createRoom(){
- if(!user)return alert("接続中だよ。少し待ってね！");
- if(busy)return;
- busy=true;say("ルームを作成中...");
+ if(!user||busy)return;busy=true;status("部屋を作成しています…");
  try{
   let created=null;
-  for(let i=0;i<5;i++){
-   const r=await db.from("game_rooms").insert({code:makeCode(),host_id:user.id,status:"waiting",game_state:initialGame(playerName())}).select().single();
-   if(!r.error){created=r.data;break}
-   if(!String(r.error.message).toLowerCase().includes("duplicate"))throw r.error;
-  }
-  if(!created)throw new Error("ルームを作成できませんでした");
-  room=created;myIndex=0;game=created.game_state;ownRoll=null;
-  localStorage.setItem(ROOM_KEY,room.id);
-  show("loginArea",false);show("waitingArea",true);show("gameArea",false);
-  $("roomCode").textContent=created.code;
-  say("ルームを作ったよ！");
-  startSync();
- }catch(e){say("エラー："+e.message);alert(e.message)}
- finally{busy=false}
+  for(let i=0;i<6;i++){const {data,error}=await db.from("game_rooms").insert({code:newCode(),host_id:user.id,status:"waiting",game_state:initialState(name())}).select().single();if(!error){created=data;break}if(!/duplicate/i.test(error.message))throw error}
+  if(!created)throw Error("部屋を作成できませんでした");
+  room=created;game=created.game_state;myIndex=0;localStorage.setItem(ROOM_KEY,room.id);setGameVisible();$("roomCode").textContent=room.code;startSync();status("招待コードを共有して相手を待ってね");
+ }catch(e){status("エラー："+e.message)}finally{busy=false}
 }
-
 async function joinRoom(code){
- if(!user)return alert("接続中だよ。少し待ってね！");
- if(busy)return;
- busy=true;say("部屋に参加しています...");
- try{
-  const r=await db.rpc("join_room_by_code",{p_code:code,p_player_name:playerName()});
-  if(r.error)throw r.error;
-  const joined=Array.isArray(r.data)?r.data[0]:r.data;
-  if(!joined)throw new Error("部屋が見つからないか、満員です");
-  room=joined;game=joined.game_state;myIndex=1;ownRoll=null;
-  localStorage.setItem(ROOM_KEY,room.id);
-  show("loginArea",false);show("waitingArea",false);show("gameArea",true);
-  startSync();render();
- }catch(e){say("参加できませんでした");alert(e.message)}
- finally{busy=false}
+ if(!user||busy)return;if(!/^[A-Z0-9]{6}$/.test(code)){status("6桁の招待コードを入力してください");return}
+ busy=true;status("部屋に参加しています…");
+ try{const {data,error}=await db.rpc("join_room_by_code",{p_code:code,p_player_name:name()});if(error)throw error;const joined=Array.isArray(data)?data[0]:data;if(!joined)throw Error("部屋が見つからないか満員です");room=joined;game=joined.game_state;myIndex=1;ownRoll=null;localStorage.setItem(ROOM_KEY,room.id);setGameVisible();startSync();render()}
+ catch(e){status("参加できませんでした："+e.message)}finally{busy=false}
 }
-
-/* 修正版：SQL側で部屋の作成・参加を一括処理する */
 async function randomMatch(){
- if(!user)return alert("接続中だよ。少し待ってね！");
- if(busy)return;
-
- busy=true;
- say("対戦相手を探しています...");
-
- try{
-  const r=await db.rpc("join_random_room",{
-   p_player_name:playerName()
-  });
-
-  if(r.error)throw r.error;
-
-  const joined=Array.isArray(r.data)?r.data[0]:r.data;
-  if(!joined)throw new Error("部屋を取得できませんでした");
-
-  room=joined;
-  game=joined.game_state;
-  myIndex=joined.host_id===user.id?0:1;
-  ownRoll=null;
-
-  setupSubmittedAttempt=-1;
-  setupAutoAttempt=-1;
-  matchBannerShownFor=null;
-
-  localStorage.setItem(ROOM_KEY,room.id);
-
-  if(room.status==="waiting"){
-   show("loginArea",false);
-   show("waitingArea",true);
-   show("gameArea",false);
-   $("roomCode").textContent=room.code;
-   say("対戦相手を探しています...");
-  }else{
-   show("loginArea",false);
-   show("waitingArea",false);
-   show("gameArea",true);
-   say("対戦相手が見つかりました！");
-  }
-
-  startSync();
-  render();
-
- }catch(e){
-  say("エラー："+e.message);
-  alert(e.message);
- }finally{
-  busy=false;
- }
+ if(!user||busy)return;busy=true;status("対戦相手を探しています…");
+ try{const {data,error}=await db.rpc("join_random_room",{p_player_name:name()});if(error)throw error;const joined=Array.isArray(data)?data[0]:data;if(!joined)throw Error("部屋を取得できませんでした");room=joined;game=joined.game_state;myIndex=joined.host_id===user.id?0:1;ownRoll=null;setupSubmitted=-1;setupAuto=-1;bannerKey=null;localStorage.setItem(ROOM_KEY,room.id);setGameVisible();if(room.status==="waiting")$("roomCode").textContent=room.code;startSync();render()}
+ catch(e){status("エラー："+e.message)}finally{busy=false}
 }
-
-/* 同期処理 */
 async function startSync(){
- show("waitingArea",room.status==="waiting");
- show("gameArea",room.status==="playing");
- if(room.status==="waiting")$("roomCode").textContent=room.code;
-
+ if(!room)return;
  if(channel)await db.removeChannel(channel);
- channel=db.channel("room-"+room.id)
-  .on("postgres_changes",{event:"UPDATE",schema:"public",table:"game_rooms",filter:"id=eq."+room.id},p=>receive(p.new))
-  .subscribe();
-
- if(poller)clearInterval(poller);
- poller=setInterval(refresh,900);
- if(timerLoop)clearInterval(timerLoop);
- timerLoop=setInterval(tick,250);
-
- if(room.status==="playing"&&game&&game.phase==="setup"){
-  showMatchBanner();
- }
+ channel=db.channel("island-room-"+room.id).on("postgres_changes",{event:"UPDATE",schema:"public",table:"game_rooms",filter:"id=eq."+room.id},ev=>receive(ev.new)).subscribe();
+ if(poller)clearInterval(poller);poller=setInterval(refresh,1000);
+ if(ticker)clearInterval(ticker);ticker=setInterval(tick,200);
+ if(room.status==="playing"&&game?.phase==="setup")showMatchBanner();
+ if(room.status==="playing")loadChat();
 }
-
 function receive(row){
  if(!row||!room||row.id!==room.id)return;
- room=row;
-
- if(row.status==="playing"){
-  game=row.game_state;
-  show("waitingArea",false);show("gameArea",true);
-  if(game.phase==="setup")showMatchBanner();
-  render();
- }else if(row.status==="expired"){
-  say("待機部屋の有効期限が切れました");
+ const prev=room;room=row;
+ if(row.status==="playing"){game=row.game_state||{};setGameVisible();if(game.phase==="setup")showMatchBanner();if(game.finished)onGameFinished();render()}
+ else if(row.status==="finished"||row.status==="expired"){
+  game=row.game_state||game;
+  if(row.status==="finished"&&game?.finished){setGameVisible();render();onGameFinished()}
+  else opponentLeft(row.status==="expired"?"待機部屋が終了しました":"相手が退出しました。")
  }
 }
 async function refresh(){
  if(!room)return;
- const r=await db.from("game_rooms").select("*").eq("id",room.id).maybeSingle();
- if(!r.error&&r.data)receive(r.data);
+ const {data,error}=await db.from("game_rooms").select("*").eq("id",room.id).maybeSingle();
+ if(!error&&data)receive(data);
 }
 async function loadOwnSecret(){
- if(!room||myIndex<0)return;
- const r=await db.from("game_secrets").select("real_roll").eq("room_id",room.id).maybeSingle();
- if(!r.error&&r.data)ownRoll=r.data.real_roll;else ownRoll=null;
+ if(!room)return;const {data}=await db.from("game_secrets").select("real_roll").eq("room_id",room.id).maybeSingle();ownRoll=data?.real_roll??null;
 }
-
-/* マッチ成立演出 */
 function showMatchBanner(){
- if(!room||!game)return;
-
- const started=Number(game.matchFoundAt||0);
- const key=room.id+":"+started;
-
- if(matchBannerShownFor===key)return;
- if(started&&Date.now()-started>=3000)return;
-
- matchBannerShownFor=key;
- $("bannerTitle").textContent="対戦相手が見つかりました！";
- $("bannerText").textContent="3秒後に先攻を決めるよ！";
- show("matchBanner",true);
-
- if(matchBannerTimer)clearTimeout(matchBannerTimer);
- const remaining=started?Math.max(0,3000-(Date.now()-started)):3000;
-
- matchBannerTimer=setTimeout(()=>{
-  show("matchBanner",false);
-  render();
- },remaining);
+ if(!room||!game)return;const stamp=Number(game.matchFoundAt||0),key=room.id+":"+stamp;if(key===bannerKey)return;if(stamp&&Date.now()-stamp>=3000)return;bannerKey=key;
+ $("bannerTitle").textContent="対戦相手が見つかりました";$("bannerText").textContent="3秒後に先攻決めが始まります。";show("matchBanner",true);
+ if(bannerTimer)clearTimeout(bannerTimer);bannerTimer=setTimeout(()=>show("matchBanner",false),stamp?Math.max(0,3000-(Date.now()-stamp)):3000);
 }
-
-async function submitSetupRoll(){
- if(!room||!game||game.phase!=="setup"||busy)return;
- const attempt=Number(game.setupAttempt||0);
- if(Date.now()<Number(game.matchFoundAt||0)+3000)return;
- if(setupSubmittedAttempt===attempt)return;
-
- busy=true;$("setupRollBtn").disabled=true;
- const roll=1+Math.floor(Math.random()*6);
- $("dice").textContent=diceFaces[roll];
- $("dice").classList.add("rolling");
- $("setupHint").textContent="相手のサイコロを待っています...";
-
- try{
-  const r=await db.rpc("submit_start_roll",{p_room_id:room.id,p_roll:roll});
-  if(r.error)throw r.error;
-  setupSubmittedAttempt=attempt;
-  await refresh();
- }catch(e){
-  say("先攻決めエラー："+e.message);
-  $("setupRollBtn").disabled=false;
- }finally{
-  $("dice").classList.remove("rolling");
-  busy=false;
- }
+async function setupRoll(){
+ if(!room||!game||game.phase!=="setup"||busy)return;const attempt=Number(game.setupAttempt||0);if(Date.now()<Number(game.matchFoundAt||0)+3000||setupSubmitted===attempt)return;
+ busy=true;$("setupRollBtn").disabled=true;const n=1+Math.floor(Math.random()*6);animateDie(n);
+ try{const {error}=await db.rpc("submit_start_roll",{p_room_id:room.id,p_roll:n});if(error)throw error;setupSubmitted=attempt;await refresh()}
+ catch(e){status("先攻決めエラー："+e.message);$("setupRollBtn").disabled=false}finally{busy=false}
 }
-
-function maybeAutoReroll(){
- if(!game||game.phase!=="setup"||!Array.isArray(game.setupRolls))return;
- const attempt=Number(game.setupAttempt||0);
- if(setupAutoAttempt===attempt)return;
- setupAutoAttempt=attempt;
- $("setupResult").textContent="同じ目！もう一度振るよ！";
- $("setupHint").textContent="自動で振り直しています...";
- setTimeout(()=>{
-  if(game&&game.phase==="setup"&&Number(game.setupAttempt||0)===attempt){
-   setupSubmittedAttempt=-1;
-   submitSetupRoll();
-  }
- },1100);
+function autoReroll(){
+ if(!game||game.phase!=="setup"||!Array.isArray(game.setupRolls))return;const a=Number(game.setupAttempt||0);if(setupAuto===a)return;setupAuto=a;$("setupResult").textContent="同じ目！もう一度振り直します";
+ setTimeout(()=>{if(game?.phase==="setup"&&Number(game.setupAttempt||0)===a){setupSubmitted=-1;setupRoll()}},1000);
 }
-
 async function action(type,value=null){
- if(!room||busy)return;
- busy=true;
- try{
-  const r=await db.rpc("game_action",{p_room_id:room.id,p_action:type,p_value:value});
-  if(r.error)throw r.error;
-  if(type==="roll")await loadOwnSecret();
-  await refresh();
- }catch(e){
-  if(!String(e.message).includes("時間切れ")&&!String(e.message).includes("まだ時間切れ")&&!String(e.message).includes("今は"))say("操作エラー："+e.message);
-  await refresh();
- }finally{busy=false}
+ if(!room||busy)return;busy=true;
+ try{const {error}=await db.rpc("game_action",{p_room_id:room.id,p_action:type,p_value:value});if(error)throw error;if(type==="roll")await loadOwnSecret();await refresh();if(type!=="timeout")sfx(type==="doubt"?"doubt":"tap")}
+ catch(e){if(!/時間切れ|まだ時間切れ|今は/.test(e.message))status("操作エラー："+e.message);await refresh()}
+ finally{busy=false}
 }
-
 function drawBoard(){
- const board=$("board");board.innerHTML="";
+ const board=$("board");board.replaceChildren();const pos=Array.isArray(game?.pos)?game.pos:[0,0];
  for(let i=0;i<=30;i++){
-  const angle=(-Math.PI/2)+(Math.PI*2*i/31);
-  const x=50+43*Math.cos(angle),y=50+42*Math.sin(angle);
-  const c=document.createElement("div");c.className="cell";
-  c.style.left=x+"%";c.style.top=y+"%";
-  if(i===0)c.classList.add("start");
-  if(i===30)c.classList.add("goal");
-  if(game.pos[0]===i)c.classList.add("me");
-  if(game.pos[1]===i)c.classList.add("enemy");
-
+  const a=-Math.PI/2+Math.PI*2*i/31,x=50+43*Math.cos(a),y=50+42*Math.sin(a),cell=document.createElement("div");cell.className="cell";cell.style.left=x+"%";cell.style.top=y+"%";if(i===0)cell.classList.add("start");if(i===30)cell.classList.add("goal");
   const tokens=document.createElement("div");tokens.className="tokens";
-  if(game.pos[0]===i){const img=document.createElement("img");img.src=$("avatar0").src;img.alt="カニ";tokens.append(img)}
-  if(game.pos[1]===i){const img=document.createElement("img");img.src=$("avatar1").src;img.alt="タコ";tokens.append(img)}
-
-  const num=document.createElement("div");num.className="number";
-  num.textContent=i===0?"START":i===30?"GOAL":i;
-  c.append(tokens,num);board.append(c);
+  if(pos[0]===i){const im=document.createElement("img");im.src=$("avatar0").src;im.alt="プレイヤー1";tokens.append(im)}
+  if(pos[1]===i){const im=document.createElement("img");im.src=$("avatar1").src;im.alt="プレイヤー2";tokens.append(im)}
+  const n=document.createElement("div");n.className="n";n.textContent=i===0?"START":i===30?"GOAL":String(i);cell.append(tokens,n);board.append(cell);
  }
 }
-
 function render(){
  if(!game||myIndex<0)return;
- $("player0").textContent=game.players[0]||"PLAYER 1";
- $("player1").textContent=game.players[1]||"PLAYER 2";
- $("p0").textContent=(game.pos[0]||0)+" / 30";
- $("p1").textContent=(game.pos[1]||0)+" / 30";
- $("card0").classList.toggle("active",game.turn===0&&!game.finished);
- $("card1").classList.toggle("active",game.turn===1&&!game.finished);
+ const p=game.players||["PLAYER 1","PLAYER 2"],pos=game.pos||[0,0],finished=!!game.finished,phase=game.phase;
+ for(let i=0;i<2;i++){$("player"+i).textContent=p[i]||"PLAYER "+(i+1);$("playerPos"+i).textContent=(pos[i]||0)+" / 30 マス";$("progress"+i).style.width=Math.min(100,(pos[i]||0)/30*100)+"%";$("card"+i).classList.toggle("active",!finished&&game.turn===i)}
  drawBoard();
-
- const setup=game.phase==="setup";
- show("setupArea",setup);
- show("rollArea",!setup&&game.phase==="roll"&&game.turn===myIndex&&!game.finished);
- show("declareArea",!setup&&game.phase==="declare"&&game.turn===myIndex&&!game.finished);
- show("challengeArea",!setup&&game.phase==="challenge"&&game.turn!==myIndex&&!game.finished);
-
- $("turn").textContent=setup?"🎲 先攻決め":game.finished?"🏆 GAME FINISHED":icons[game.turn]+" "+game.players[game.turn]+" のターン";
+ const setup=phase==="setup";
+ show("setupArea",setup);show("rollArea",!finished&&!setup&&phase==="roll"&&game.turn===myIndex);show("declareArea",!finished&&!setup&&phase==="declare"&&game.turn===myIndex);show("challengeArea",!finished&&!setup&&phase==="challenge"&&game.turn!==myIndex);show("finishedArea",finished);
+ $("phaseTag").textContent=finished?"GAME FINISHED":setup?"START ROLL":game.turn===myIndex?"YOUR TURN":"OPPONENT TURN";
  $("message").textContent=game.message||"";
-
  if(setup){
-  const readyAt=Number(game.matchFoundAt||0)+3000;
-  const waiting=Date.now()<readyAt;
-  $("setupRollBtn").disabled=waiting||busy||setupSubmittedAttempt===Number(game.setupAttempt||0);
-  $("setupHint").textContent=waiting?"対戦開始まで準備中...":setupSubmittedAttempt===Number(game.setupAttempt||0)?"相手のサイコロを待っています":"サイコロを振って先攻を決めよう！";
-  $("setupResult").textContent=Array.isArray(game.setupRolls)?"プレイヤー1："+game.setupRolls[0]+" ／ プレイヤー2："+game.setupRolls[1]:"";
-  $("dice").textContent="🎲";$("privateRoll").textContent="";
-  if(Array.isArray(game.setupRolls))maybeAutoReroll();
- }else if(game.phase==="declare"&&game.claimant===myIndex&&ownRoll!==null){
-  $("dice").textContent=diceFaces[ownRoll];$("privateRoll").textContent="🔒 あなただけに見えている本当の出目";
- }else if(game.phase==="challenge"&&game.claim!==null){
-  $("dice").textContent=diceFaces[game.claim];$("privateRoll").textContent="相手の宣言した数字";
- }else{
-  $("dice").textContent="🎲";$("privateRoll").textContent="";
- }
- tick();
+  const ready=Number(game.matchFoundAt||0)+3000,wait=Date.now()<ready,a=Number(game.setupAttempt||0);
+  $("setupRollBtn").disabled=wait||busy||setupSubmitted===a;$("setupHint").textContent=wait?"対戦開始の準備中…":setupSubmitted===a?"相手のサイコロを待っています":"サイコロを振って先攻を決めよう";
+  $("setupResult").textContent=Array.isArray(game.setupRolls)?"PLAYER 1："+game.setupRolls[0]+" ／ PLAYER 2："+game.setupRolls[1]:"";
+  $("dice").textContent="⚄";$("privateRoll").textContent="";if(Array.isArray(game.setupRolls))autoReroll();
+ }else if(phase==="declare"&&game.claimant===myIndex&&ownRoll!==null){$("dice").textContent=FACE[ownRoll];$("privateRoll").textContent="あなたにだけ見える本当の出目"}
+ else if(phase==="challenge"&&game.claim!==null){$("dice").textContent=FACE[game.claim];$("privateRoll").textContent="相手が宣言した数字"}
+ else{$("dice").textContent="⚄";$("privateRoll").textContent=""}
+ if(finished)onGameFinished();tick();
 }
-
 function tick(){
- if(!game||game.finished){$("timer").textContent="--";return}
- if(game.phase==="setup"){
-  const left=Math.max(0,Math.ceil((Number(game.matchFoundAt||0)+3000-Date.now())/1000));
-  $("timer").textContent=left>0?left:"先攻決め";
-  $("timerLabel").textContent="対戦開始";
-  $("setupRollBtn").disabled=left>0||busy||setupSubmittedAttempt===Number(game.setupAttempt||0);
-  return;
- }
- if(!game.deadline){$("timer").textContent="--";return}
- const left=Math.max(0,Math.ceil((Number(game.deadline)-Date.now())/1000));
- $("timer").textContent=left;$("timer").classList.toggle("danger",left<=3);
- $("timerLabel").textContent=game.phase==="roll"?"サイコロを振るまで":game.phase==="declare"?"宣言するまで":"ダウト・信じるの判断";
- if(left===0&&!timeoutBusy&&!busy){
-  timeoutBusy=true;action("timeout").finally(()=>{timeoutBusy=false});
- }
+ if(!game||game.finished){$("timer").textContent="--";$("timer").classList.remove("danger");return}
+ if(game.phase==="setup"){const left=Math.max(0,Math.ceil((Number(game.matchFoundAt||0)+3000-Date.now())/1000));$("timer").textContent=left?String(left):"GO";$("timer").classList.remove("danger");return}
+ const deadline=Number(game.deadline||0);if(!deadline){$("timer").textContent="--";return}
+ const left=Math.max(0,Math.ceil((deadline-Date.now())/1000));$("timer").textContent=String(left);$("timer").classList.toggle("danger",left<=3);
+ if(left===0&&!timeoutBusy&&!busy){timeoutBusy=true;action("timeout").finally(()=>timeoutBusy=false)}
 }
-
-async function rollDice(){
- if(rolling||busy||!game||game.phase!=="roll"||game.turn!==myIndex)return;
- rolling=true;$("rollBtn").disabled=true;$("dice").classList.add("rolling");
- let count=0;
- const anim=setInterval(()=>{
-  $("dice").textContent=diceFaces[1+Math.floor(Math.random()*6)];
-  if(++count>=12){
-   clearInterval(anim);
-   $("dice").classList.remove("rolling");
-   rolling=false;
-   $("rollBtn").disabled=false;
-   action("roll");
-  }
- },65);
+function animateDie(finalValue){
+ const stage=$("diceStage");stage.classList.add("rolling");let count=0;const id=setInterval(()=>{$("dice").textContent=FACE[1+Math.floor(Math.random()*6)];if(++count>=12){clearInterval(id);$("dice").textContent=FACE[finalValue];stage.classList.remove("rolling")}},65)
 }
-
-document.querySelectorAll("[data-number]").forEach(btn=>btn.addEventListener("click",()=>{
- const n=Number(btn.dataset.number);
- if(game&&game.phase==="declare"&&game.turn===myIndex)action("declare",n);
-}));
-
-$("createBtn").onclick=()=>createRoom();
-$("joinBtn").onclick=()=>joinRoom($("joinCode").value.trim().toUpperCase());
-$("randomBtn").onclick=randomMatch;
-$("rollBtn").onclick=rollDice;
-$("setupRollBtn").onclick=submitSetupRoll;
-$("doubtBtn").onclick=()=>action("doubt");
-$("believeBtn").onclick=()=>action("believe");
-
-$("copyBtn").onclick=async()=>{
- try{await navigator.clipboard.writeText(room.code);say("招待コードをコピーしたよ！")}
- catch(e){say("招待コード："+room.code)}
-};
-$("joinCode").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"")});
-
-/* オリジナルBGM */
-let audioCtx=null,bgmTimer=null,bgmOn=false,noteIndex=0;
-const melody=[523,659,784,659,587,698,880,698,523,659,784,1046];
-function playNote(){
- if(!audioCtx||!bgmOn)return;
- const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
- osc.type="sine";osc.frequency.value=melody[noteIndex++%melody.length];
- gain.gain.setValueAtTime(.0001,audioCtx.currentTime);
- gain.gain.exponentialRampToValueAtTime(.035,audioCtx.currentTime+.04);
- gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+.28);
- osc.connect(gain);gain.connect(audioCtx.destination);osc.start();osc.stop(audioCtx.currentTime+.3);
+async function roll(){
+ if(rolling||busy||!game||game.phase!=="roll"||game.turn!==myIndex)return;rolling=true;$("rollBtn").disabled=true;
+ const n=1+Math.floor(Math.random()*6);animateDie(n);setTimeout(async()=>{rolling=false;$("rollBtn").disabled=false;await action("roll")},800)
 }
-async function toggleBgm(){
- try{
-  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-  if(audioCtx.state==="suspended")await audioCtx.resume();
-  bgmOn=!bgmOn;
-  if(bgmOn){playNote();bgmTimer=setInterval(playNote,330);$("bgmBtn").textContent="🔇 BGM OFF"}
-  else{clearInterval(bgmTimer);$("bgmBtn").textContent="🎵 BGM ON"}
- }catch(e){alert("この端末ではBGMを再生できませんでした")}
+function onGameFinished(){
+ if(!game?.finished)return;const winner=Number(game.winner),mine=winner===myIndex;$("winnerTitle").textContent=mine?"YOU WIN":"GAME OVER";$("winnerText").textContent=(game.players?.[winner]||"プレイヤー")+" の勝利！";show("finishedArea",true);
+ if(room&&!game.matchRecorded){db.rpc("record_match_result",{p_room_id:room.id}).then(({error})=>{if(!error)loadStats()})}
 }
-$("bgmBtn").onclick=toggleBgm;
-
-$("backBtn").onclick=async()=>{
- if(poller)clearInterval(poller);
- if(timerLoop)clearInterval(timerLoop);
- if(channel)await db.removeChannel(channel);
- if(bgmTimer)clearInterval(bgmTimer);
- if(matchBannerTimer)clearTimeout(matchBannerTimer);
- room=null;game=null;myIndex=-1;ownRoll=null;
- setupSubmittedAttempt=-1;setupAutoAttempt=-1;matchBannerShownFor=null;
- localStorage.removeItem(ROOM_KEY);
- show("loginArea",true);show("waitingArea",false);show("gameArea",false);show("matchBanner",false);
- bgmOn=false;$("bgmBtn").textContent="🎵 BGM ON";
- say("タイトルに戻りました");
-};
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});
-window.addEventListener("focus",refresh);
-window.addEventListener("pageshow",refresh);
+function opponentLeft(message){stopSync();localStorage.removeItem(ROOM_KEY);$("leaveTitle").textContent="対戦が終了しました";$("leaveText").textContent=message;show("leaveBanner",true)}
+function stopSync(){if(poller)clearInterval(poller);if(ticker)clearInterval(ticker);if(channel){db.removeChannel(channel);channel=null}}
+async function leaveRoom(){
+ if(!room){goTitle();return}
+ const current=room;
+ try{const {error}=await db.rpc("leave_game_room",{p_room_id:current.id});if(error)throw error}
+ catch(e){status("退出処理に失敗："+e.message);return}
+ stopSync();localStorage.removeItem(ROOM_KEY);goTitle()
+}
+function goTitle(){
+ stopSync();if(bannerTimer)clearTimeout(bannerTimer);room=null;game=null;myIndex=-1;ownRoll=null;busy=false;rolling=false;setupSubmitted=-1;setupAuto=-1;bannerKey=null;
+ show("lobby",true);show("waiting",false);show("game",false);show("matchBanner",false);show("leaveBanner",false);status("タイトルに戻りました")
+}
+async function sendChat(key){
+ if(!room||!user||chatBusy||Date.now()-lastChatAt<800)return;chatBusy=true;lastChatAt=Date.now();
+ try{const {error}=await db.from("game_chat_messages").insert({room_id:room.id,sender_id:user.id,message_key:key});if(error)throw error;await loadChat();sfx("chat")}
+ catch(e){status("チャットを送れませんでした："+e.message)}finally{chatBusy=false}
+}
+async function loadChat(){
+ if(!room)return;const {data,error}=await db.from("game_chat_messages").select("sender_id,message_key,created_at").eq("room_id",room.id).order("created_at",{ascending:true}).limit(40);if(error)return;
+ const log=$("chatLog");log.replaceChildren();
+ for(const m of data||[]){const el=document.createElement("div");el.className="chat-msg"+(m.sender_id===user?.id?" mine":"");el.textContent=CHAT_TEXT[m.message_key]||"メッセージ";const small=document.createElement("small");small.textContent=m.sender_id===user?.id?"あなた":"相手";el.append(small);log.append(el)}
+ log.scrollTop=log.scrollHeight
+}
+async function loadStats(){
+ if(!user)return;const {data,error}=await db.from("game_player_stats").select("games_played,wins,losses,current_streak,best_streak").eq("user_id",user.id).maybeSingle();
+ if(error){$("statsNote").textContent="戦績を読み込めませんでした。";return}
+ $("statPlayed").textContent=data?.games_played??0;$("statWins").textContent=data?.wins??0;$("statStreak").textContent=data?.current_streak??0;
+ $("statsNote").textContent=data?("敗北："+data.losses+"回 ／ 最高連勝："+data.best_streak+"回"):"まだ対戦記録がありません。対戦終了後に記録されます。"
+}
+function initAudio(){if(!audio)audio=new(window.AudioContext||window.webkitAudioContext)();if(audio.state==="suspended")audio.resume()}
+function sfx(kind){
+ if(!$("sfxToggle").checked)return;
+ try{initAudio();const vol=Number($("sfxVolume").value)/100*.08;if(vol<=0)return;const o=audio.createOscillator(),g=audio.createGain();o.type=kind==="doubt"?"sawtooth":"sine";o.frequency.setValueAtTime(kind==="doubt"?190:kind==="chat"?760:520,audio.currentTime);o.frequency.exponentialRampToValueAtTime(kind==="doubt"?80:kind==="chat"?520:780,audio.currentTime+.13);g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(vol,audio.currentTime+.015);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.18);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.2)}catch(e){}
+}
+function stopBgm(){if(bgmTimer)clearInterval(bgmTimer);bgmTimer=null;if(bgmOsc){try{bgmOsc.stop()}catch(e){}bgmOsc=null}}
+function playBgmNote(){
+ if(!$("bgmToggle").checked||!audio)return;const vol=Number($("bgmVolume").value)/100*.025;if(vol<=0)return;
+ const o=audio.createOscillator(),g=audio.createGain();o.type="sine";o.frequency.value=melody[bgmStep++%melody.length];g.gain.setValueAtTime(.0001,audio.currentTime);g.gain.exponentialRampToValueAtTime(vol,audio.currentTime+.04);g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+.28);o.connect(g);g.connect(audio.destination);o.start();o.stop(audio.currentTime+.3)
+}
+function toggleBgm(){if(!$("bgmToggle").checked){stopBgm();return}initAudio();if(!bgmTimer){playBgmNote();bgmTimer=setInterval(playBgmNote,360)}}
+$("createBtn").onclick=createRoom;$("randomBtn").onclick=randomMatch;$("showJoinBtn").onclick=()=>show("joinArea",true);$("joinBtn").onclick=()=>joinRoom($("joinCode").value.trim().toUpperCase());
+$("joinCode").addEventListener("input",e=>e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,""));
+$("copyBtn").onclick=async()=>{try{await navigator.clipboard.writeText(room.code);status("招待コードをコピーしました")}catch(e){status("招待コード："+room.code)}};
+$("cancelWaitingBtn").onclick=leaveRoom;$("setupRollBtn").onclick=setupRoll;$("rollBtn").onclick=roll;$("doubtBtn").onclick=()=>action("doubt");$("believeBtn").onclick=()=>action("believe");
+document.querySelectorAll("[data-number]").forEach(b=>b.addEventListener("click",()=>action("declare",Number(b.dataset.number))));
+document.querySelectorAll("[data-chat]").forEach(b=>b.addEventListener("click",()=>sendChat(b.dataset.chat)));
+$("backBtn")?.addEventListener("click",goTitle);$("finishedBackBtn").onclick=goTitle;$("leaveBackBtn").onclick=goTitle;
+$("settingsBtn").onclick=()=>{show("settingsModal",true);toggleBgm()};$("closeSettings").onclick=()=>show("settingsModal",false);
+$("statsBtn").onclick=()=>{loadStats();show("statsModal",true)};$("closeStats").onclick=()=>show("statsModal",false);
+$("bgmToggle").onchange=()=>{if($("bgmToggle").checked)toggleBgm();else stopBgm()};
+$("bgmVolume").oninput=()=>{if(bgmTimer){stopBgm();toggleBgm()}};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refresh()});window.addEventListener("focus",refresh);window.addEventListener("pagehide",()=>{if(poller)clearInterval(poller)});
+connect();
 </script>
 </body>
 </html>
