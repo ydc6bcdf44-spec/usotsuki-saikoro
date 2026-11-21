@@ -280,6 +280,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .start-die-card span{font-size:12px;color:#806b45;font-weight:900}
 .start-die-card strong{font-family:var(--pixel-font);font-size:25px;color:#57968c}
 @media(max-width:760px){#game .start-dice-pair{gap:5px;margin:3px 0}#game .start-die-card{padding:3px 5px;gap:5px}#game .start-die-card span{font-size:11px}#game .start-die-card strong{font-size:20px}}
+@media(max-width:760px){#game .chat-panel .chat-log{display:flex;height:38px;min-height:38px;overflow:hidden;padding:3px 7px;margin:3px 0 0;justify-content:flex-end}#game .chat-log .chat-msg{display:none}#game .chat-log .chat-msg:last-child{display:block;max-width:100%;font-size:12px;padding:3px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#game .chat-log .chat-msg small{display:inline;margin-left:7px;font-size:10px}#game #chatError:not(.hidden){display:block;font-size:11px;padding:3px;color:#a34e67}}
 </style>
 </head>
 <body>
@@ -690,7 +691,8 @@ function render(){
  show("challengeArea",!finished&&!setup&&phase==="challenge"&&game.turn!==myIndex);
  show("finishedArea",finished);
  $("phaseTag").textContent=finished?"GAME FINISHED":setup?"START ROLL":game.turn===myIndex?"YOUR TURN":"OPPONENT TURN";
- $("message").textContent=game.message||"";
+ const opponentActing=!finished&&!setup&&!reveal&&game.turn!==myIndex&&(phase==="roll"||phase==="declare");
+ $("message").textContent=opponentActing?"相手の行動を待っています…":game.message||"";
  $("leaveFromSettings").classList.toggle("hidden",!room||room.status!=="playing");
  // Hide the dice when waiting for the opponent; never reveal their private roll.
  const waitingForOpponent=(setup&&setupSubmitted===Number(game.setupAttempt||0))||(!setup&&!finished&&((phase==="roll"||phase==="declare")&&game.turn!==myIndex));
@@ -807,6 +809,7 @@ async function sendChat(key){
    room_id:room.id,sender_id:user.id,message_key:key
   });
   if(error)throw error;
+  $("chatError").textContent="送信しました："+(CHAT_TEXT[key]||"メッセージ");show("chatError",true);
   await loadChat();sfx("chat");
  }catch(e){const msg="チャット送信エラー："+e.message;status(msg);$("chatError").textContent=msg;show("chatError",true)}
  finally{chatBusy=false}
@@ -817,7 +820,7 @@ async function loadChat(){
   .select("sender_id,message_key,created_at").eq("room_id",room.id)
   .order("created_at",{ascending:true}).limit(40);
  if(error){$("chatError").textContent="チャット取得エラー："+error.message;show("chatError",true);return;}
- show("chatError",false);
+ if(!$("chatError").textContent.startsWith("送信しました"))show("chatError",false);
  const log=$("chatLog");log.replaceChildren();
  for(const m of data||[]){
   const el=document.createElement("div");
@@ -828,6 +831,7 @@ async function loadChat(){
   el.append(small);log.append(el);
  }
  log.scrollTop=log.scrollHeight;
+ if(data?.length)show("chatError",false);
 }
 async function loadStats(){
  if(!user)return;
