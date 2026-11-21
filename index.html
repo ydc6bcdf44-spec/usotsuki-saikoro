@@ -7,7 +7,7 @@
 <title>嘘つきサイコロ — Island Adventure</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&family=Zen+Maru+Gothic:wght@400;500;700;900&display=swap');
 :root{
  --sea:#a9e3df;--sea2:#78c9c9;--deep:#397f7d;--mint:#d9f2df;
  --sand:#fff0c9;--gold:#f5c66e;--coral:#f49a91;--pink:#f8dce8;
@@ -18,7 +18,7 @@
 html{min-height:100%;background:#b9e9e4}
 body{
  margin:0;min-height:100vh;padding:clamp(10px,2.4vw,28px);
- font-family:"DM Sans","Noto Sans JP",sans-serif;color:var(--ink);
+ font-family:"Zen Maru Gothic",sans-serif;color:var(--ink);
  background:
  radial-gradient(ellipse at 10% 5%,#f9e8ce 0,transparent 25%),
  radial-gradient(ellipse at 90% 10%,#d8f2d9 0,transparent 28%),
@@ -159,6 +159,47 @@ button:disabled{opacity:.45;cursor:not-allowed}
  .lobby-actions{grid-template-columns:1fr}.dice-stage{width:94px;height:94px}
  .die{width:65px;height:65px;padding:10px}.number-btn{padding:10px 0}
 }
+
+/* PIXEL ISLAND — decorative pixel type, legible rounded body text */
+:root{--pixel-font:"DotGothic16","Zen Maru Gothic",sans-serif;--pixel-latin:"Press Start 2P","DotGothic16",monospace}
+.brand h1,.lobby h2,.waiting h2,.modal h2,.action-area h3,.board-heading h3,.banner h2,.phase-tag,.room-code{
+ font-family:var(--pixel-font);font-weight:900;
+}
+.brand h1{letter-spacing:.065em;text-shadow:2px 2px 0 #fff8db,-1px -1px 0 #fff8db}
+.lobby h2{line-height:1.5;text-shadow:3px 3px 0 #d3f0dc}
+.eyebrow,.brand small,.board-legend,.board-heading span{
+ font-family:var(--pixel-latin);letter-spacing:.06em;line-height:1.8;
+}
+.eyebrow{font-size:8px}
+.brand small{font-size:7px}
+.room-code{letter-spacing:.13em;text-shadow:3px 3px 0 #d9eee3}
+.primary,.secondary,.danger,.gold-btn,.icon-btn,.number-btn{
+ font-family:var(--pixel-font);font-weight:900;letter-spacing:.035em;
+}
+.primary,.gold-btn,.danger,.secondary{
+ border-radius:8px;position:relative;
+}
+.primary:active:not(:disabled),.gold-btn:active:not(:disabled){box-shadow:0 1px 0 #397c75;transform:translateY(3px)}
+.phase-tag,.timer,.cell .n,.player-info small,.setup-result{
+ font-family:var(--pixel-font);
+}
+.phase-tag{letter-spacing:.08em}
+.message,#setupHint{line-height:1.8}
+#setupResult:not(:empty){animation:pixelReveal .45s steps(5,end) both}
+#message{transition:color .2s}
+#matchBanner .banner-card,#leaveBanner .banner-card{animation:pixelCardIn .45s steps(6,end) both}
+@keyframes pixelCardIn{from{opacity:0;transform:translateY(22px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes pixelReveal{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){
+ #setupResult:not(:empty),#matchBanner .banner-card,#leaveBanner .banner-card{animation:none}
+}
+@media(max-width:520px){
+ .brand h1{font-size:17px}
+ .brand small{font-size:6px}
+ .eyebrow{font-size:7px}
+ .lobby h2{font-size:clamp(23px,6vw,32px)}
+}
+
 </style>
 </head>
 <body>
