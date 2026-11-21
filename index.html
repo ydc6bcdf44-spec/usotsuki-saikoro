@@ -264,6 +264,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
  <div class="setting-row"><span>BGM音量</span><input class="range" type="range" id="bgmVolume" min="0" max="100" value="35"></div>
  <div class="setting-row"><span>効果音音量</span><input class="range" type="range" id="sfxVolume" min="0" max="100" value="65"></div>
  <p style="font-size:10px;color:#9aaca1;line-height:1.7">音声は最初の操作後に再生されます。設定はこの端末のブラウザ内に保存されます。</p>
+ <p id="leaveSettingsError" class="hidden" style="color:#bd4763;font-size:13px;line-height:1.6"></p>
  <button class="danger wide" id="leaveFromSettings" type="button">対戦を途中退出する</button>
  <button class="primary wide" id="closeSettings">閉じる</button>
 </div></div>
@@ -642,15 +643,20 @@ function stopSync(){
  if(channel){db.removeChannel(channel);channel=null}
 }
 async function leaveRoom(){
- if(!room){goTitle();return}
+ if(!room){goTitle();return true}
  const current=room;
  try{
   const {error}=await db.rpc("leave_game_room",{p_room_id:current.id});
   if(error)throw error;
  }catch(e){
-  status("退出処理に失敗："+e.message);return;
+  const msg="退出処理に失敗："+e.message;
+  status(msg);
+  $("leaveSettingsError").textContent=msg;
+  show("leaveSettingsError",true);
+  return false;
  }
  stopSync();localStorage.removeItem(ROOM_KEY);goTitle();
+ return true;
 }
 function goTitle(){
  stopSync();if(bannerTimer)clearTimeout(bannerTimer);
@@ -785,11 +791,15 @@ $("settingsBtn").onclick=()=>{
 $("closeSettings").onclick=()=>show("settingsModal",false);
 $("leaveFromSettings").onclick=async()=>{
  if(!room||room.status!=="playing")return;
- if(!confirm("対戦を途中退出しますか？ 相手との対戦も終了します。"))return;
+ if(!window.confirm("対戦を途中退出しますか？ 相手との対戦も終了します。"))return;
+ show("leaveSettingsError",false);
  $("leaveFromSettings").disabled=true;
  try{
-  await leaveRoom();
-  if(!room)show("settingsModal",false);
+  const left=await leaveRoom();
+  if(left)show("settingsModal",false);
+ }catch(e){
+  $("leaveSettingsError").textContent="退出処理に失敗："+e.message;
+  show("leaveSettingsError",true);
  }finally{$("leaveFromSettings").disabled=false}
 };
 
