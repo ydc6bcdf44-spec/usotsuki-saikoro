@@ -461,15 +461,37 @@ function showMatchBanner(){
 async function setupRoll(){
  if(!room||!game||game.phase!=="setup"||busy)return;
  const attempt=Number(game.setupAttempt||0);
- if(setupSubmitted===attempt){$("setupHint").textContent="相手のサイコロを待っています";return;}
+ if(setupSubmitted===attempt)return;
+ if(user?.id!==room.host_id&&user?.id!==room.guest_id){
+  $("setupHint").textContent="参加者情報が一致しません。タイトルに戻って再マッチしてください";
+  return;
+ }
  busy=true;$("setupRollBtn").disabled=true;
  const n=1+Math.floor(Math.random()*6);animateDie(n);
  try{
-  const {error}=await db.rpc("submit_start_roll",{p_room_id:room.id,p_roll:n});
+  const {data,error}=await db.rpc("submit_start_roll",{p_room_id:room.id,p_roll:n});
   if(error)throw error;
-  setupSubmitted=attempt;await refresh();
- }catch(e){const msg="先攻決めエラー："+e.message;status(msg);$("setupHint").textContent=msg;$("setupRollBtn").disabled=false}
- finally{busy=false; if(game?.phase==="setup")$("setupRollBtn").disabled=setupSubmitted===Number(game.setupAttempt||0)}
+  if(!data||!["waiting","tie","started"].includes(data.status))throw Error("先攻決めの保存結果を確認できません");
+  const {data:saved,error:checkError}=await db.from("game_start_rolls")
+   .select("player_id,attempt").eq("room_id",room.id).eq("player_id",user.id).eq("attempt",attempt).maybeSingle();
+  // Both rolls are deleted by the server after the second roll, so a missing row
+  // is valid only if the room has already advanced to the next phase or attempt.
+  if(checkError)throw checkError;
+  await refresh();
+  if(data.status==="waiting"&&!saved&&game?.phase==="setup"&&Number(game.setupAttempt||0)===attempt){
+   throw Error("出目が保存されていません。もう一度振ってください");
+  }
+  setupSubmitted=attempt;
+  if(data.status==="waiting")$("setupHint").textContent="あなたの出目は保存済み。相手を待っています";
+  else $("setupHint").textContent=data.status==="tie"?"同じ目！振り直し":"先攻・後攻が決まりました！";
+ }catch(e){
+  setupSubmitted=-1;
+  const msg="先攻決めエラー："+e.message;
+  status(msg);$("setupHint").textContent=msg;
+ }finally{
+  busy=false;
+  if(game?.phase==="setup")$("setupRollBtn").disabled=setupSubmitted===Number(game.setupAttempt||0);
+ }
 }
 function autoReroll(){
  if(!game||game.phase!=="setup"||!Array.isArray(game.setupRolls))return;
