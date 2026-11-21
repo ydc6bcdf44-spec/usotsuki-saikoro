@@ -346,7 +346,40 @@ button:disabled{opacity:.45;cursor:not-allowed}
 @keyframes tokenHop{0%{transform:translateY(12px) scale(.65);opacity:.4}55%{transform:translateY(-9px) scale(1.14)}100%{transform:none;opacity:1}}
 @keyframes cutinEnter{from{opacity:0;transform:translateX(-90%) rotate(-8deg)}to{opacity:1;transform:rotate(-2deg)}}
 @media(prefers-reduced-motion:reduce){.brand-mark,.brand h1,.lobby,.lobby-glitter,.pixel-island,.pixel-island rect:first-child,.pixel-island path,.board-wrap:after,.cell.token-hop .tokens,.cutin-card{animation:none!important}}
-.island-flower{transform-box:fill-box;transform-origin:center bottom;animation:flowerSway 3.5s ease-in-out infinite alternate}.island-flower:nth-child(3n){animation-delay:-1.5s}.island-palm{transform-box:fill-box;transform-origin:center bottom;animation:palmSway 5s ease-in-out infinite alternate}.island-crystal{animation:crystalGlow 2.8s ease-in-out infinite alternate}@keyframes flowerSway{to{transform:rotate(6deg)}}@keyframes palmSway{to{transform:rotate(2deg)}}@keyframes crystalGlow{to{filter:brightness(1.4)}}}@media(prefers-reduced-motion:reduce){.island-flower,.island-palm,.island-crystal,}</style>
+.island-flower{transform-box:fill-box;transform-origin:center bottom;animation:flowerSway 3.5s ease-in-out infinite alternate}.island-flower:nth-child(3n){animation-delay:-1.5s}.island-palm{transform-box:fill-box;transform-origin:center bottom;animation:palmSway 5s ease-in-out infinite alternate}.island-crystal{animation:crystalGlow 2.8s ease-in-out infinite alternate}@keyframes flowerSway{to{transform:rotate(6deg)}}@keyframes palmSway{to{transform:rotate(2deg)}}@keyframes crystalGlow{to{filter:brightness(1.4)}}}@media(prefers-reduced-motion:reduce){.island-flower,.island-palm,.island-crystal,}
+/* High-detail hand-pixelled stepping stones; overrides earlier generic button-like cells */
+#game .board-wrap{border:4px solid #d9efdc;box-shadow:inset 0 0 0 3px #ffffff75,0 8px 18px #4e8c7a24;background:#78cbd0}
+#game #board .cell{
+ --stone-top:#f8e7bd;--stone-mid:#e9d2a1;--stone-side:#b89872;--stone-edge:#856c58;
+ width:8.8%;height:10%;border:0;border-radius:0;
+ background:linear-gradient(180deg,#fff6d7 0 12%,var(--stone-top) 12% 48%,var(--stone-mid) 48% 77%,var(--stone-side) 77% 90%,var(--stone-edge) 90% 100%);
+ clip-path:polygon(12% 0,88% 0,88% 6%,96% 6%,96% 17%,100% 17%,100% 83%,94% 83%,94% 93%,84% 93%,84% 100%,16% 100%,16% 93%,6% 93%,6% 84%,0 84%,0 18%,6% 18%,6% 7%,12% 7%);
+ box-shadow:none;isolation:isolate;overflow:visible;
+ filter:drop-shadow(0 3px 0 #5c79665c) drop-shadow(0 5px 1px #345f6055);
+}
+#game #board .cell:nth-child(3n){--stone-top:#e2e9c0;--stone-mid:#c4d5a0;--stone-side:#90ac83;--stone-edge:#6c886e}
+#game #board .cell:nth-child(5n){--stone-top:#f7e3d2;--stone-mid:#e7c2b6;--stone-side:#b78e8c;--stone-edge:#927078}
+#game #board .cell.start{--stone-top:#b7efd4;--stone-mid:#8bd5b4;--stone-side:#5fae94;--stone-edge:#427e70}
+#game #board .cell.goal{--stone-top:#ffedaa;--stone-mid:#f5d47e;--stone-side:#d49c59;--stone-edge:#a77843}
+#game #board .cell::before{
+ content:"";position:absolute;inset:8% 9% 18%;z-index:0;pointer-events:none;
+ background:
+ linear-gradient(90deg,transparent 0 18%,#ffffff70 18% 24%,transparent 24% 69%,#997c5933 69% 74%,transparent 74%),
+ linear-gradient(0deg,transparent 0 32%,#ffffff8a 32% 36%,transparent 36% 73%,#a38d6545 73% 78%,transparent 78%),
+ repeating-linear-gradient(90deg,transparent 0 5px,#ffffff26 5px 6px,transparent 6px 9px);
+ opacity:.68;clip-path:polygon(8% 0,92% 0,100% 18%,100% 82%,88% 100%,12% 100%,0 82%,0 18%);
+}
+#game #board .cell::after{
+ content:"";position:absolute;inset:5% 5% 16%;z-index:0;pointer-events:none;
+ border-top:1px solid #fffce6a6;border-left:1px solid #fffce67d;
+ border-bottom:2px solid #866d524a;border-right:2px solid #866d524a;
+ clip-path:polygon(11% 0,89% 0,100% 14%,100% 86%,89% 100%,11% 100%,0 86%,0 14%);
+}
+#game #board .cell .tokens{position:relative;z-index:2;overflow:visible}
+#game #board .cell .n{position:relative;z-index:2;font-size:clamp(7px,1.15vw,10px);line-height:1.05;color:#614e48;text-shadow:0 1px #fff8d9;letter-spacing:-.02em}
+#game #board .cell.start .n,#game #board .cell.goal .n{font-size:clamp(5px,.85vw,8px);letter-spacing:-.06em}
+@media(max-width:480px){#game #board .cell .n{font-size:7px}#game #board .cell.start .n,#game #board .cell.goal .n{font-size:5px}}
+</style>
 </head>
 <body>
 <div class="shell">
