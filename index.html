@@ -266,6 +266,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
  <p style="font-size:10px;color:#9aaca1;line-height:1.7">音声は最初の操作後に再生されます。設定はこの端末のブラウザ内に保存されます。</p>
  <p id="leaveSettingsError" class="hidden" style="color:#bd4763;font-size:13px;line-height:1.6"></p>
  <button class="danger wide" id="leaveFromSettings" type="button">対戦を途中退出する</button>
+ <div id="leaveConfirmArea" class="hidden" style="padding:12px 0"><p style="font-size:13px">本当に退出しますか？相手との対戦も終了します。</p><button class="danger wide" id="leaveConfirmYes" type="button">退出を確定する</button><button class="secondary wide" id="leaveConfirmNo" type="button" style="margin-top:8px">キャンセル</button></div>
  <button class="primary wide" id="closeSettings">閉じる</button>
 </div></div>
 <div class="modal-backdrop hidden" id="statsModal"><div class="surface modal">
@@ -789,18 +790,32 @@ $("settingsBtn").onclick=()=>{
  toggleBgm();
 };
 $("closeSettings").onclick=()=>show("settingsModal",false);
-$("leaveFromSettings").onclick=async()=>{
- if(!room||room.status!=="playing")return;
- if(!window.confirm("対戦を途中退出しますか？ 相手との対戦も終了します。"))return;
+$("leaveFromSettings").onclick=()=>{
  show("leaveSettingsError",false);
- $("leaveFromSettings").disabled=true;
+ show("leaveConfirmArea",true);
+ show("leaveFromSettings",false);
+};
+$("leaveConfirmNo").onclick=()=>{
+ show("leaveConfirmArea",false);
+ show("leaveFromSettings",true);
+};
+$("leaveConfirmYes").onclick=async()=>{
+ $("leaveConfirmYes").disabled=true;
+ $("leaveConfirmYes").textContent="退出処理中…";
  try{
   const left=await leaveRoom();
-  if(left)show("settingsModal",false);
+  if(left){
+   show("settingsModal",false);
+   show("leaveConfirmArea",false);
+   show("leaveFromSettings",true);
+  }
  }catch(e){
   $("leaveSettingsError").textContent="退出処理に失敗："+e.message;
   show("leaveSettingsError",true);
- }finally{$("leaveFromSettings").disabled=false}
+ }finally{
+  $("leaveConfirmYes").disabled=false;
+  $("leaveConfirmYes").textContent="退出を確定する";
+ }
 };
 
 $("statsBtn").onclick=()=>{
