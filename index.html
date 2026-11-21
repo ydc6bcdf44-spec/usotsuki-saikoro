@@ -70,7 +70,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .players{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px}
 .player{background:#f1f8e9;border:1px solid #dfecd9;border-radius:17px;padding:12px;display:flex;align-items:center;gap:11px;min-width:0;position:relative}
 .player.active{outline:3px solid #f1c76f;background:#fff8df;box-shadow:0 0 0 5px #f1c76f25}
-.avatar{width:58px;height:58px;flex:none;filter:drop-shadow(0 3px 2px #6b8b7950)}
+.avatar{width:72px;height:72px;flex:none;filter:drop-shadow(0 3px 2px #6b8b7950)}
 .player-info{min-width:0;text-align:left}
 .player-info strong{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .player-info small{display:block;color:#89a198;font-size:10px;margin-top:3px}
@@ -96,7 +96,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
 .cell.goal{background:linear-gradient(160deg,#fff2b5,#f4c46c);border-color:#d6a04d}
 .cell .n{font-size:clamp(7px,1.15vw,11px);line-height:1}
 .cell .tokens{display:flex;align-items:center;justify-content:center;height:72%;gap:0}
-.cell img{width:clamp(23px,3.8vw,40px);height:clamp(23px,3.8vw,40px);object-fit:contain;filter:drop-shadow(0 3px 2px #395e4c66);margin:0 -6px;animation:tokenPop .28s ease-out}
+.cell img{width:clamp(28px,4.5vw,48px);height:clamp(28px,4.5vw,48px);object-fit:contain;filter:drop-shadow(0 3px 2px #395e4c66);margin:0 -6px;animation:tokenPop .28s ease-out}
 @keyframes tokenPop{from{transform:scale(.5) translateY(-8px)}to{transform:scale(1) translateY(0)}}
 .board-legend{display:flex;justify-content:space-between;padding:9px 4px 0;color:#91a69b;font-size:10px;gap:6px}
 .control{padding:18px}
@@ -149,12 +149,12 @@ button:disabled{opacity:.45;cursor:not-allowed}
  body{padding:10px}.header{margin-bottom:12px}.game{grid-template-columns:1fr;gap:10px}
  .left-col,.right-col{gap:10px}.board-wrap{aspect-ratio:1.13}
  .cell{width:9.1%;height:10.3%}
- .cell img{width:clamp(20px,5vw,35px);height:clamp(20px,5vw,35px)}
+ .cell img{width:clamp(25px,6vw,42px);height:clamp(25px,6vw,42px)}
  .control{padding:14px}.chat-log{height:110px}
 }
 @media(max-width:420px){
  .brand-mark{width:39px;height:39px}.header-actions .icon-btn{padding:9px}
- .player{padding:9px;gap:8px}.avatar{width:45px;height:45px}
+ .player{padding:9px;gap:8px}.avatar{width:56px;height:56px}
  .player-info strong{font-size:11px}.player-info small{font-size:9px}
  .lobby-actions{grid-template-columns:1fr}.dice-stage{width:94px;height:94px}
  .die{width:65px;height:65px;padding:10px}.number-btn{padding:10px 0}
@@ -406,6 +406,7 @@ async function startSync(){
  if(channel)await db.removeChannel(channel);
  channel=db.channel("island-room-"+room.id)
   .on("postgres_changes",{event:"UPDATE",schema:"public",table:"game_rooms",filter:"id=eq."+room.id},ev=>receive(ev.new))
+  .on("postgres_changes",{event:"INSERT",schema:"public",table:"game_chat_messages",filter:"room_id=eq."+room.id},()=>loadChat())
   .subscribe();
  if(poller)clearInterval(poller);
  poller=setInterval(refresh,1200);
@@ -441,9 +442,14 @@ async function loadOwnSecret(){
  const {data}=await db.from("game_secrets").select("real_roll").eq("room_id",room.id).maybeSingle();
  ownRoll=data?.real_roll??null;
 }
+function timestampMs(value){
+ if(value==null||value==="")return 0;
+ const n=Number(value);if(Number.isFinite(n)&&n>0)return n;
+ const parsed=Date.parse(value);return Number.isFinite(parsed)?parsed:0;
+}
 function showMatchBanner(){
  if(!room||!game)return;
- const stamp=Number(game.matchFoundAt||0),key=room.id+":"+stamp;
+ const stamp=timestampMs(game.matchFoundAt),key=room.id+":"+stamp;
  if(key===bannerKey)return;
  if(stamp&&Date.now()-stamp>=3000)return;
  bannerKey=key;$("bannerTitle").textContent="対戦相手が見つかりました";
@@ -623,7 +629,7 @@ function goTitle(){
  status("タイトルに戻りました");
 }
 async function sendChat(key){
- if(!room||!user||chatBusy||Date.now()-lastChatAt<800)return;
+ if(!room||room.status!=="playing"||!user||chatBusy||Date.now()-lastChatAt<800)return;
  chatBusy=true;lastChatAt=Date.now();
  try{
   const {error}=await db.from("game_chat_messages").insert({
@@ -635,7 +641,7 @@ async function sendChat(key){
  finally{chatBusy=false}
 }
 async function loadChat(){
- if(!room)return;
+ if(!room||room.status!=="playing")return;
  const {data,error}=await db.from("game_chat_messages")
   .select("sender_id,message_key,created_at").eq("room_id",room.id)
   .order("created_at",{ascending:true}).limit(40);
