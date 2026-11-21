@@ -200,6 +200,55 @@ button:disabled{opacity:.45;cursor:not-allowed}
  .lobby h2{font-size:clamp(23px,6vw,32px)}
 }
 
+
+/* Mobile: one-screen game dashboard, controls and chat always accessible */
+@media(max-width:760px){
+ body:has(#game:not(.hidden)){padding:4px 6px;overflow:hidden;height:100dvh}
+ body:has(#game:not(.hidden)) .shell{height:100%;display:flex;flex-direction:column;min-height:0}
+ body:has(#game:not(.hidden)) .header{flex:none;margin:0 0 4px;min-height:35px}
+ body:has(#game:not(.hidden)) .brand-mark{width:30px;height:30px;font-size:12px;border-radius:8px}
+ body:has(#game:not(.hidden)) .brand h1{font-size:14px}
+ body:has(#game:not(.hidden)) .brand small,body:has(#game:not(.hidden)) .footer{display:none}
+ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:6px 8px;font-size:11px}
+ #game:not(.hidden){display:grid;grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr) auto auto;gap:4px;flex:1;min-height:0;overflow:hidden}
+ #game .left-col,#game .right-col{display:contents}
+ #game .players{grid-row:1;padding:4px;gap:5px}
+ #game .player{padding:3px 6px;gap:5px;border-radius:10px}
+ #game .avatar{width:32px;height:32px}
+ #game .player-info strong{font-size:10px}
+ #game .player-info small{font-size:9px;margin:0}
+ #game .progress{height:4px;margin-top:2px}
+ #game .board-panel{grid-row:2;min-height:0;padding:4px;display:flex;flex-direction:column;overflow:hidden}
+ #game .board-heading{padding:0 3px 3px}
+ #game .board-heading h3{font-size:9px}
+ #game .board-heading span,#game .board-legend{display:none}
+ #game .board-wrap{width:100%;flex:1;min-height:0;aspect-ratio:auto;border-width:3px;border-radius:12px}
+ #game .cell{height:10%;width:8.8%;border-radius:5px}
+ #game .cell .n{font-size:8px}
+ #game .cell img{width:clamp(18px,5.5vw,31px);height:clamp(18px,5.5vw,31px)}
+ #game .control{grid-row:3;padding:6px 9px}
+ #game .phase-tag{font-size:9px;padding:3px 7px}
+ #game .timer{font-size:18px}
+ #game .dice-stage{width:48px;height:48px;margin:2px auto;border-radius:11px;box-shadow:none}
+ #game .die{width:36px;height:36px;padding:5px;border-radius:8px}
+ #game .message,#game .private{font-size:10px;margin:2px 0}
+ #game .action-area h3{font-size:12px;margin:3px 0}
+ #game .action-area p{font-size:10px;margin:3px 0}
+ #game .action-area button{padding:7px;font-size:11px}
+ #game .number-btn{padding:5px 0}
+ #game .chat-panel{grid-row:4;padding:5px 8px;min-height:0}
+ #game .chat-panel .panel-title{display:none}
+ #game .chat-log{height:26px;min-height:26px;padding:2px 5px;overflow:auto;display:block}
+ #game .chat-msg{display:inline-block;font-size:10px;padding:3px 6px;margin-right:5px}
+ #game .chat-msg small{display:inline;font-size:9px;margin-left:5px}
+ #game .chat-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px;margin-top:3px}
+ #game .chat-actions button{padding:5px 2px;font-size:10px;border-radius:6px}
+}
+@media(max-width:760px) and (max-height:650px){
+ #game .chat-log{display:none}
+ #game .dice-stage{width:40px;height:40px}
+ #game .die{width:30px;height:30px}
+}
 </style>
 </head>
 <body>
@@ -287,7 +336,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   </div>
   <div class="surface chat-panel">
    <div class="panel-title"><h3>QUICK CHAT</h3><span style="font-size:9px;color:#a0b2a5">定型メッセージ</span></div>
-   <div class="chat-log" id="chatLog"><div class="chat-msg">対戦中のメッセージがここに表示されます。</div></div>
+   <div id="chatError" class="hidden" role="alert" style="font-size:11px;color:#b74b62;padding:4px"></div><div class="chat-log" id="chatLog"><div class="chat-msg">対戦中のメッセージがここに表示されます。</div></div>
    <div class="chat-actions">
     <button data-chat="hello">よろしく！</button><button data-chat="suspicious">あやしい…</button><button data-chat="nice">ナイス！</button>
     <button data-chat="oops">やっちゃった</button><button data-chat="hurry">急いで！</button><button data-chat="thanks">ありがとう</button>
@@ -458,7 +507,7 @@ async function startSync(){
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"game_chat_messages",filter:"room_id=eq."+room.id},()=>loadChat())
   .subscribe();
  if(poller)clearInterval(poller);
- poller=setInterval(()=>{if(!document.hidden)refresh()},4000);
+ poller=setInterval(()=>{if(!document.hidden){refresh();if(room?.status==="playing")loadChat()}},4000);
  if(ticker)clearInterval(ticker);
  ticker=setInterval(tick,200);
  if(room.status==="playing")loadChat();
@@ -719,7 +768,7 @@ async function sendChat(key){
   });
   if(error)throw error;
   await loadChat();sfx("chat");
- }catch(e){status("チャットを送れませんでした："+e.message)}
+ }catch(e){const msg="チャット送信エラー："+e.message;status(msg);$("chatError").textContent=msg;show("chatError",true)}
  finally{chatBusy=false}
 }
 async function loadChat(){
@@ -727,7 +776,8 @@ async function loadChat(){
  const {data,error}=await db.from("game_chat_messages")
   .select("sender_id,message_key,created_at").eq("room_id",room.id)
   .order("created_at",{ascending:true}).limit(40);
- if(error)return;
+ if(error){$("chatError").textContent="チャット取得エラー："+error.message;show("chatError",true);return;}
+ show("chatError",false);
  const log=$("chatLog");log.replaceChildren();
  for(const m of data||[]){
   const el=document.createElement("div");
