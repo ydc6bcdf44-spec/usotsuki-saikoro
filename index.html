@@ -309,6 +309,9 @@ button:disabled{opacity:.45;cursor:not-allowed}
  #game .board-panel{min-height:0!important}
 }
 .turn-banner{font-weight:900;font-size:clamp(14px,2.5vw,19px);letter-spacing:.04em;text-align:center;border-radius:12px;padding:9px 10px;margin-bottom:6px;background:#f2e7c9;color:#826944;border:2px solid #e6d19c;box-shadow:0 3px 0 #d7c7a6}.turn-banner.mine{background:#d4f4e4;color:#24745e;border-color:#7ecba9;box-shadow:0 3px 0 #79bfa3;animation:turnGlow 1.5s ease-in-out infinite alternate}.turn-banner.theirs{background:#e8e4f5;color:#6e6397;border-color:#bcb0de;box-shadow:0 3px 0 #aaa1c9}@keyframes turnGlow{to{filter:brightness(1.06)}}.board-wrap{background:radial-gradient(ellipse at 45% 38%,#b6f0df 0%,#75d0c7 60%,#3fa9b5 100%)}@media(max-width:760px){#game .turn-banner{font-size:14px;padding:5px 8px;margin-bottom:3px;border-radius:9px}#game .control{padding-top:5px}#game .board-wrap{border-color:#eaf6d8}}
+
+/* Cinematic victory / defeat finish overlay */
+.result-overlay{position:fixed;inset:0;z-index:45;display:grid;place-items:center;padding:18px;background:rgba(18,44,55,.77);backdrop-filter:blur(7px)}.result-overlay.hidden{display:none}.result-card{position:relative;overflow:hidden;width:min(450px,100%);border-radius:26px;padding:28px 22px 24px;text-align:center;border:4px solid #fff0b6;background:linear-gradient(155deg,#fff9dc,#d2f5df 55%,#a5dfce);box-shadow:0 20px 80px #102f4380,0 0 0 6px #ffffff30;animation:resultEnter .7s cubic-bezier(.18,1.35,.3,1)}.result-overlay.lose .result-card{border-color:#a9a3c9;background:linear-gradient(155deg,#e5e3ef,#c7ccdf 65%,#b3bcd1)}.result-kicker{font-weight:900;letter-spacing:.25em;font-size:13px;color:#6c927e}.result-symbol{font-size:76px;line-height:1.2;filter:drop-shadow(0 8px 3px #356e5a30);animation:resultFloat 2s ease-in-out infinite alternate}.result-headline{font-size:clamp(31px,8vw,49px);margin:5px 0 10px;color:#4d9c75;text-shadow:2px 3px #fff7d6;font-weight:1000;letter-spacing:.08em}.lose .result-headline{color:#77718d;text-shadow:1px 2px #fff}.result-description{font-size:15px;line-height:1.7;font-weight:800;color:#526e68;margin:0 0 20px}.result-overlay.lose .result-description{color:#6d6a80}.result-card button{width:100%;max-width:290px;min-height:46px}.result-sparkles{position:absolute;inset:0;pointer-events:none;overflow:hidden}.result-sparkles i{position:absolute;top:-15%;left:var(--x);width:9px;height:18px;background:var(--c);border-radius:3px;opacity:0;animation:confettiFall var(--d) linear infinite;animation-delay:var(--delay)}.lose .result-sparkles{display:none}@keyframes resultEnter{from{transform:translateY(45px) scale(.75);opacity:0}to{transform:translateY(0) scale(1);opacity:1}}@keyframes resultFloat{to{transform:translateY(-7px) rotate(4deg)}}@keyframes confettiFall{10%{opacity:1}90%{opacity:1}to{top:110%;transform:rotate(620deg);opacity:0}}@media(prefers-reduced-motion:reduce){.result-card,.result-symbol,.result-sparkles i{animation:none!important}}
 </style>
 </head>
 <body>
@@ -796,12 +799,30 @@ async function roll(){
   rolling=false;$("rollBtn").disabled=false;await action("roll");
  },800);
 }
+let resultShownFor="";
+function finishSound(won){
+ if(!$("sfxToggle").checked)return;
+ try{initAudio();const now=audio.currentTime;const notes=won?[523.25,659.25,783.99,1046.5]:[392,349.23,293.66,261.63];notes.forEach((freq,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.type=won?"triangle":"sine";o.frequency.value=freq;const t=now+i*(won?.14:.24);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.06,t+.03);g.gain.exponentialRampToValueAtTime(.0001,t+.36);o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+.38)})}catch(e){}
+}
 function onGameFinished(){
  if(!game?.finished)return;
  const winner=Number(game.winner),mine=winner===myIndex;
  $("winnerTitle").textContent=mine?"YOU WIN":"GAME OVER";
  $("winnerText").textContent=(game.players?.[winner]||"プレイヤー")+" の勝利！";
  show("finishedArea",true);
+ const resultKey=(room?.id||"")+":"+winner;
+ if(resultShownFor!==resultKey){
+  resultShownFor=resultKey;
+  const overlay=$("resultOverlay");overlay.classList.toggle("lose",!mine);
+  $("resultKicker").textContent=mine?"ISLAND CHAMPION":"CHALLENGE COMPLETE";
+  $("resultSymbol").textContent=mine?"♛":"◇";
+  $("resultHeadline").textContent=mine?"大勝利！":"敗北…";
+  $("resultDescription").textContent=mine?"ゴール到達！島の冒険を制覇したよ！":"今回は相手が先にゴール。次こそリベンジ！";
+  const sparkles=$("resultSparkles");sparkles.replaceChildren();
+  if(mine)for(let i=0;i<34;i++){const dot=document.createElement("i");dot.style.setProperty("--x",Math.random()*100+"%");dot.style.setProperty("--c",["#f4d66c","#a4d7ca","#f4a6b5","#fff","#a5b4f0"][i%5]);dot.style.setProperty("--d",(1.7+Math.random()*1.8)+"s");dot.style.setProperty("--delay",(-Math.random()*3)+"s");sparkles.append(dot)}
+  show("resultOverlay",true);finishSound(mine);
+ }
+
  if(room&&!game.matchRecorded){
   db.rpc("record_match_result",{p_room_id:room.id}).then(({error})=>{
    if(!error)loadStats();
@@ -961,6 +982,7 @@ document.querySelectorAll("[data-chat]").forEach(b=>{
 });
 
 $("finishedBackBtn").onclick=goTitle;
+$("resultBackBtn").onclick=()=>{show("resultOverlay",false);goTitle()};
 $("leaveBackBtn").onclick=goTitle;
 
 $("settingsBtn").onclick=()=>{
@@ -1027,5 +1049,6 @@ loadSettings();
 diceFace(5);
 connect();
 </script>
+<div class="result-overlay hidden" id="resultOverlay" role="dialog" aria-modal="true" aria-labelledby="resultHeadline"><div class="result-card"><div class="result-sparkles" id="resultSparkles"></div><div class="result-kicker" id="resultKicker">ISLAND ADVENTURE</div><div class="result-symbol" id="resultSymbol" aria-hidden="true">★</div><h2 class="result-headline" id="resultHeadline">VICTORY!</h2><p class="result-description" id="resultDescription"></p><button class="primary" id="resultBackBtn" type="button">タイトルへ戻る</button></div></div>
 </body>
 </html>
