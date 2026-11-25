@@ -556,24 +556,28 @@ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!importan
 #game #board[data-goal="15"] .cell{width:4.6%;height:7.8%}
 #game #board[data-goal="15"] .cell[data-lane="1"] .n{color:#365d49}
 #game #board[data-goal="15"] .cell[data-lane="0"] .n{color:#785239}
-</style><style id="island-route-alignment">#game #board[data-goal="15"] .cell{width:4.1%;height:7.2%}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5.3%;height:8.2%}#game #board[data-goal="15"] .cell .n{font-size:clamp(7px,1.1vw,12px)}#game #board[data-goal="15"] .cell.start .n,#game #board[data-goal="15"] .cell.goal .n{font-size:clamp(5px,.85vw,8px)}</style><style id="non-overlap-tiles">#game #board[data-goal="15"] .cell{width:4.1%!important;height:7.2%!important;box-sizing:border-box;min-width:0;min-height:0}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5%!important;height:8.7%!important}#game #board[data-goal="15"] .cell .n{white-space:nowrap;overflow:hidden}#game #board[data-goal="15"] .cell .tokens{pointer-events:none}</style><style id="mobile-map-readability">
-#game #mapZoomToggle{position:absolute;bottom:8px;left:8px;z-index:25;padding:6px 12px;font-size:12px}
-#game #board[data-goal] .cell .n{color:#4e3724;text-shadow:0 1px #fff9e4,1px 0 #fff9e4,-1px 0 #fff9e4,0 -1px #fff9e4;font-weight:900}
-#game .board-panel.map-expanded{position:fixed!important;inset:0!important;width:100vw!important;height:100dvh!important;max-height:none!important;z-index:1000!important;background:#16495b!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding:0!important;overflow:hidden!important}
-#game .board-panel.map-expanded .board-heading,#game .board-panel.map-expanded .board-legend{display:none!important}
-#game .board-panel.map-expanded .board-wrap{position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:min(calc(100vw - 12px),calc((100dvh - 12px) * 1.775))!important;height:auto!important;aspect-ratio:900 / 507!important;border-width:1px!important}
-#game .board-panel.map-expanded #board[data-goal] .cell .n{font-size:clamp(9px,1.45vmin,15px)!important}
-#game .board-panel.map-expanded #board[data-goal] .cell.start .n,#game .board-panel.map-expanded #board[data-goal] .cell.goal .n{font-size:clamp(7px,1.2vmin,12px)!important}
+</style><style id="island-route-alignment">#game #board[data-goal="15"] .cell{width:4.1%;height:7.2%}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5.3%;height:8.2%}#game #board[data-goal="15"] .cell .n{font-size:clamp(7px,1.1vw,12px)}#game #board[data-goal="15"] .cell.start .n,#game #board[data-goal="15"] .cell.goal .n{font-size:clamp(5px,.85vw,8px)}</style><style id="non-overlap-tiles">#game #board[data-goal="15"] .cell{width:4.1%!important;height:7.2%!important;box-sizing:border-box;min-width:0;min-height:0}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5%!important;height:8.7%!important}#game #board[data-goal="15"] .cell .n{white-space:nowrap;overflow:hidden}#game #board[data-goal="15"] .cell .tokens{pointer-events:none}</style><style id="portrait-map-layout">
+#game #board[data-goal] .cell .n{font-weight:900;color:#4e3724;text-shadow:0 1px #fff9e4,1px 0 #fff9e4,-1px 0 #fff9e4,0 -1px #fff9e4}
 @media(max-width:760px){
+body:has(#game:not(.hidden)){padding:max(6px,env(safe-area-inset-top)) 8px max(10px,env(safe-area-inset-bottom))!important}
+#game:not(.hidden){grid-template-rows:50px max-content minmax(0,1fr)!important;gap:9px!important}
+#game .board-panel{width:calc(100% + 16px)!important;margin-inline:-8px;padding:0!important;border:0!important;background:transparent;box-shadow:none;border-radius:0!important}
+#game .board-wrap{width:100%!important;aspect-ratio:1648 / 928!important;height:auto!important;min-height:0!important;border-width:2px!important;border-radius:9px}
+#game .control{align-self:end!important;max-height:100%!important;min-height:0!important;justify-content:flex-start!important;overflow-y:auto!important;padding:12px 10px!important}
+#game .control .turn-banner{margin-bottom:7px}
+#game .control .phase-line{margin-bottom:5px}
+#game .control .dice-stage{margin:6px auto}
+#game .control .action-area{padding-top:6px}
+#game .control .action-area button{min-height:40px}
 #game #board[data-goal="15"] .cell .n{font-size:8px!important}
 #game #board[data-goal="15"] .cell.start .n,#game #board[data-goal="15"] .cell.goal .n{font-size:6px!important}
-#game #mapZoomToggle,#game .board-wrap #mapChatToggle{padding:4px 8px;bottom:5px;font-size:11px}
+#game .board-wrap #mapChatToggle{bottom:7px;right:7px}
 }
-@media(max-width:760px) and (orientation:portrait){
-#game .board-panel.map-expanded .board-wrap{width:min(calc(100dvh - 16px),calc((100vw - 16px) * 1.775))!important;transform:translate(-50%,-50%) rotate(90deg)}
-#game .board-panel.map-expanded #board[data-goal] .cell .n{font-size:11px!important}
-#game .board-panel.map-expanded #board[data-goal] .cell.start .n,#game .board-panel.map-expanded #board[data-goal] .cell.goal .n{font-size:8px!important}
-#game .board-panel.map-expanded #board[data-goal] .cell img{width:42px;height:42px}
+@media(max-width:760px) and (max-height:620px){
+#game:not(.hidden){grid-template-rows:44px max-content minmax(0,1fr)!important;gap:6px!important}
+#game .control{padding:5px 8px!important}
+#game .control .action-area button{min-height:33px}
+#game .control .dice-stage{margin:2px auto}
 }
 </style></head>
 <body>
@@ -622,7 +626,7 @@ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!importan
    <div class="board-heading"><h3>THE ISLAND MAP</h3><span>START → GOAL · 30 STEPS</span></div>
    <div class="board-wrap">
     <div class="island-art" aria-hidden="true"><img class="island-land" src="./assets/island-background.webp" alt=""><img alt="" class="island-prop island-sway" src="./assets/palm.png" style="left:30%;top:54%;width:9%;animation-delay:-0s"><img alt="" class="island-prop island-sway" src="./assets/palm.png" style="left:69%;top:37%;width:8%;animation-delay:-1.5s"><img alt="" class="island-prop island-crab" src="./assets/crab.png" style="left:39%;top:85%;width:4.5%;animation-delay:-0s"><img alt="" class="island-prop island-butterfly" src="./assets/butterfly.png" style="left:31%;top:43%;width:3.6%;animation-delay:-0s"><div class="island-falls"></div><div class="island-sea-glint"></div></div>
-    <div id="board"></div><button type="button" id="mapZoomToggle" class="gold-btn" aria-expanded="false" aria-label="マップを拡大する">拡大</button><button type="button" id="mapChatToggle" class="gold-btn" aria-expanded="false">チャット</button><div class="surface chat-panel hidden" id="mapChatPanel">
+    <div id="board"></div><button type="button" id="mapChatToggle" class="gold-btn" aria-expanded="false">チャット</button><div class="surface chat-panel hidden" id="mapChatPanel">
    <div class="panel-title"><h3>QUICK CHAT</h3><span style="font-size:9px;color:#a0b2a5">定型メッセージ</span></div>
    <div id="chatError" class="hidden" role="alert" style="font-size:11px;color:#b74b62;padding:4px"></div><div class="chat-log" id="chatLog"><div class="chat-msg">対戦中のメッセージがここに表示されます。</div></div>
    <div class="chat-actions">
@@ -1052,7 +1056,7 @@ function animateTokens(pos){
  const tokenSelector=i=>'img[alt="プレイヤー'+(i+1)+'"]';
  const origins=prev.map((v,i)=>$("board").querySelector(tokenSelector(i))?.getBoundingClientRect());
  lastRenderedPositions=next;drawBoard(next);
- next.forEach((v,i)=>{if(v===prev[i])return;const im=$("board").querySelector(tokenSelector(i));if(!im)return;const r=im.getBoundingClientRect(),o=origins[i],rx=o?o.left-r.left:0,ry=o?o.top-r.top:0,rotated=document.querySelector("#game .board-panel").classList.contains("map-expanded")&&matchMedia("(orientation: portrait) and (max-width:760px)").matches,dx=rotated?ry:rx,dy=rotated?-rx:ry;im.animate([{transform:"translate("+dx+"px,"+dy+"px)"},{transform:"translate("+(dx*.5)+"px,"+(dy*.5-9)+"px)",offset:.5},{transform:"translate(0,0)"}],{duration:500,easing:"ease-in-out"});im.closest(".cell")?.classList.add("island-landing")});
+ next.forEach((v,i)=>{if(v===prev[i])return;const im=$("board").querySelector(tokenSelector(i));if(!im)return;const r=im.getBoundingClientRect(),o=origins[i],dx=o?o.left-r.left:0,dy=o?o.top-r.top:0;im.animate([{transform:"translate("+dx+"px,"+dy+"px)"},{transform:"translate("+(dx*.5)+"px,"+(dy*.5-9)+"px)",offset:.5},{transform:"translate(0,0)"}],{duration:500,easing:"ease-in-out"});im.closest(".cell")?.classList.add("island-landing")});
  walkTimer=setTimeout(()=>{walkTimer=null;if(lastRenderedPositions.some((v,i)=>v!==walkTarget[i]))step();else if(game?.finished)onGameFinished()},620);
  }
  step();
@@ -1290,7 +1294,6 @@ async function leaveRoom(){
  return true;
 }
 function goTitle(){
- setMapZoom(false);
  cpuMode=false;clearTimeout(cpuTimer);
  stopSync();if(bannerTimer)clearTimeout(bannerTimer);
  room=null;game=null;myIndex=-1;ownRoll=null;busy=false;rolling=false;
@@ -1443,15 +1446,6 @@ document.querySelectorAll("[data-chat]").forEach(b=>{
  b.addEventListener("click",()=>{sendChat(b.dataset.chat);show("mapChatPanel",false);$("mapChatToggle").setAttribute("aria-expanded","false")});
 });
 
-function setMapZoom(open){
- const panel=document.querySelector("#game .board-panel");
- panel.classList.toggle("map-expanded",open);
- $("mapZoomToggle").textContent=open?"元の画面に戻る":"拡大";
- $("mapZoomToggle").setAttribute("aria-expanded",String(open));
- $("mapZoomToggle").setAttribute("aria-label",open?"マップの拡大を閉じる":"マップを拡大する");
-}
-$("mapZoomToggle").onclick=()=>setMapZoom(!document.querySelector("#game .board-panel").classList.contains("map-expanded"));
-document.addEventListener("keydown",e=>{if(e.key==="Escape"&&document.querySelector("#game .board-panel").classList.contains("map-expanded"))setMapZoom(false)});
 $("mapChatToggle").onclick=()=>{const open=$("mapChatPanel").classList.contains("hidden");show("mapChatPanel",open);$("mapChatToggle").setAttribute("aria-expanded",String(open))};
 $("finishedBackBtn").onclick=goTitle;
 $("resultBackBtn").onclick=()=>{show("resultOverlay",false);goTitle()};
