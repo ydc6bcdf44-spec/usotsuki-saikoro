@@ -556,7 +556,7 @@ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!importan
 #game #board[data-goal="15"] .cell{width:4.6%;height:7.8%}
 #game #board[data-goal="15"] .cell[data-lane="1"] .n{color:#365d49}
 #game #board[data-goal="15"] .cell[data-lane="0"] .n{color:#785239}
-</style><style id="island-route-alignment">#game #board[data-goal="15"] .cell{width:4.1%;height:7.2%}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5.3%;height:8.2%}#game #board[data-goal="15"] .cell .n{font-size:clamp(7px,1.1vw,12px)}#game #board[data-goal="15"] .cell.start .n,#game #board[data-goal="15"] .cell.goal .n{font-size:clamp(5px,.85vw,8px)}</style></head>
+</style><style id="island-route-alignment">#game #board[data-goal="15"] .cell{width:4.1%;height:7.2%}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5.3%;height:8.2%}#game #board[data-goal="15"] .cell .n{font-size:clamp(7px,1.1vw,12px)}#game #board[data-goal="15"] .cell.start .n,#game #board[data-goal="15"] .cell.goal .n{font-size:clamp(5px,.85vw,8px)}</style><style id="non-overlap-tiles">#game #board[data-goal="15"] .cell{width:4.1%!important;height:7.2%!important;box-sizing:border-box;min-width:0;min-height:0}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5%!important;height:8.7%!important}#game #board[data-goal="15"] .cell .n{white-space:nowrap;overflow:hidden}#game #board[data-goal="15"] .cell .tokens{pointer-events:none}</style></head>
 <body>
 <div class="shell">
 <header class="header">
@@ -1053,8 +1053,8 @@ function playVictoryFanfare(){
  stopBgm();if(!$("bgmToggle").checked)return;
  try{initAudio();[523.25,659.25,783.99,1046.5,783.99,1046.5,1318.51].forEach((hz,i)=>{const at=audio.currentTime+i*.16,o=audio.createOscillator(),g=audio.createGain();o.type="triangle";o.frequency.value=hz;g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Number($("bgmVolume").value)/100*.055,at+.02);g.gain.exponentialRampToValueAtTime(.0001,at+.3);o.connect(g);g.connect(audio.destination);o.start(at);o.stop(at+.32)})}catch(e){}
 }
-const islandBridge15=[[21.238,74.03],[26.396,77.047],[33.192,77.371],[40.291,75.431],[46.42,72.629],[50.425,65.625],[53.216,59.806],[58.859,58.405],[64.502,57.004],[70.267,55.496],[76.456,54.203],[82.949,49.892],[87.985,42.241],[86.833,35.129],[82.828,28.448],[84.466,19.073]];
-const islandUpper15=[[21.238,74.03],[25.91,67.241],[29.854,60.668],[25.85,55.819],[19.66,51.616],[20.813,45.905],[27.367,42.565],[33.92,40.948],[36.226,36.099],[40.595,32.328],[45.631,28.772],[47.269,23.707],[54.248,21.228],[64.017,22.737],[74.272,28.017],[84.466,19.073]];
+const islandBridge15=[[21.238,74.03],[26.453,77.047],[33.192,77.371],[40.291,75.431],[46.04,72.629],[50.805,66.898],[53.216,58.533],[58.859,58.405],[64.502,57.004],[70.267,55.496],[76.456,54.203],[82.949,49.892],[87.985,42.867],[87.213,34.502],[82.448,28.448],[84.466,19.073]];
+const islandUpper15=[[21.238,74.03],[26.453,68.137],[30.235,59.772],[25.47,55.819],[19.66,52.943],[20.813,44.578],[27.367,42.565],[33.92,42.706],[36.028,34.341],[40.793,32.328],[45.631,30.422],[47.269,22.057],[54.248,21.228],[64.017,22.737],[74.272,28.017],[84.466,19.073]];
 const islandRoute=[[188,374],[220,391],[259,394],[310,390],[365,383],[412,376],[438,365],[454,342],[459,322],[477,307],[502,291],[530,288],[559,286],[588,282],[615,278],[650,278],[688,278],[725,270],[755,254],[779,231],[792,211],[789,194],[776,176],[761,156],[755,136],[756,120],[765,103],[775,91]];
 function islandPoint(i,goal,lane=0){
  if(goal===15)return (lane===1?islandUpper15:islandBridge15)[i];
