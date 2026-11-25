@@ -918,15 +918,23 @@ async function randomMatch(){
  }catch(e){status("エラー："+e.message)}
  finally{busy=false}
 }
+let roomPingAt=0,roomPingId=null;
+function pingRoomActivity(){
+ if(cpuMode||!room||!user||document.hidden||!["waiting","playing"].includes(room.status))return;
+ if(roomPingId===room.id&&Date.now()-roomPingAt<20000)return;
+ roomPingId=room.id;roomPingAt=Date.now();
+ db.rpc("island_room_ping",{p_room_id:room.id}).then(()=>{},()=>{});
+}
 async function startSync(){
  if(!room)return;
+ pingRoomActivity();
  if(channel)await db.removeChannel(channel);
  channel=db.channel("island-room-"+room.id)
   .on("postgres_changes",{event:"UPDATE",schema:"public",table:"game_rooms",filter:"id=eq."+room.id},ev=>receive(ev.new))
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"game_chat_messages",filter:"room_id=eq."+room.id},()=>loadChat())
   .subscribe();
  if(poller)clearInterval(poller);
- let pollCount=0;poller=setInterval(()=>{if(!document.hidden){refresh();if(++pollCount%6===0&&room?.status==="playing")loadChat()}},700);
+ let pollCount=0;poller=setInterval(()=>{if(!document.hidden){pingRoomActivity();refresh();if(++pollCount%6===0&&room?.status==="playing")loadChat()}},700);
  if(ticker)clearInterval(ticker);
  ticker=setInterval(tick,200);
  if(room.status==="playing")loadChat();
@@ -944,7 +952,7 @@ function receive(row){
   if(row.status==="finished"&&game?.finished){
    setGameVisible();render();onGameFinished();
   }else{
-   opponentLeft(row.status==="expired"?"待機部屋が終了しました":"相手が退出しました。");
+   opponentLeft(game?.closedReason==="abandoned"?(game.message||"放置ルームを終了しました。"):row.status==="expired"?"待機部屋が終了しました":"相手が退出しました。");
   }
  }
 }
