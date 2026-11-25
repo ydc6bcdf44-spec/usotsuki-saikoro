@@ -414,7 +414,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
  #game .control{padding:4px 7px!important}
  #game .action-area p{margin:0 0 2px}
 }
-</style></head>
+</style><style>#game #board[data-goal="15"] .cell{width:12%;height:13%}#goalSelect{margin-top:4px;color:#58786f}</style></head>
 <body>
 <div class="shell">
 <header class="header">
@@ -425,10 +425,10 @@ button:disabled{opacity:.45;cursor:not-allowed}
 <section class="surface lobby" id="lobby">
  <div class="lobby-glitter" aria-hidden="true"></div><div class="eyebrow">A JOURNEY OF BLUFF & LUCK</div>
  <h2>うそを見破って、<br>島の頂上を目指そう。</h2>
- <p class="lobby-copy">サイコロの出目を自由に宣言。相手を信じるか、ダウトするか。先に30マスへ到達したプレイヤーの勝利。</p>
+ <p class="lobby-copy">サイコロの出目を自由に宣言。相手を信じるか、ダウトするか。先にゴールへ到達したプレイヤーの勝利。</p>
  <label class="field-label" for="playerName">プレイヤー名</label>
  <input class="field" id="playerName" maxlength="12" placeholder="名前を入力">
- <button class="primary wide" id="createBtn" style="margin-top:12px">部屋を作成する</button>
+ <label class="field-label" for="goalSelect">対戦モード</label><select class="field" id="goalSelect"><option value="15">15マス · クイック対戦</option><option value="30" selected>30マス · 通常対戦</option></select><button class="primary wide" id="createBtn" style="margin-top:12px">部屋を作成する</button>
  <div class="lobby-actions">
   <button class="secondary" id="randomBtn">ランダムマッチ</button>
   <button class="secondary" id="showJoinBtn">招待コードで参加</button>
@@ -551,8 +551,10 @@ function diceFace(n){
   die.append(pip);
  });
 }
+function selectedGoal(){return Number($("goalSelect").value)===15?15:30}
+function goalTiles(){return Number(game?.goal)===15?15:30}
 function initialState(n){
- return {players:[n,"プレイヤー2"],pos:[0,0],turn:0,phase:"waiting",real:null,claim:null,claimant:null,finished:false,winner:null,message:"相手の参加を待っています",deadline:null};
+ return {goal:selectedGoal(),matchType:"invite",players:[n,"プレイヤー2"],pos:[0,0],turn:0,phase:"waiting",real:null,claim:null,claimant:null,finished:false,winner:null,message:"相手の参加を待っています",deadline:null};
 }
 function newCode(){return Math.random().toString(36).slice(2,8).toUpperCase()}
 
@@ -639,7 +641,7 @@ async function joinRoom(code){
 async function randomMatch(){
  if(!user||busy)return;busy=true;status("対戦相手を探しています…");
  try{
-  const {data,error}=await db.rpc("join_random_room",{p_player_name:name()});
+  const {data,error}=await db.rpc("join_random_room",{p_player_name:name(),p_goal:selectedGoal()});
   if(error)throw error;
   const joined=Array.isArray(data)?data[0]:data;
   if(!joined)throw Error("部屋を取得できませんでした");
@@ -817,13 +819,16 @@ function playVictoryFanfare(){
 function drawBoard(){
  const board=$("board");board.replaceChildren();
  const pos=Array.isArray(game?.pos)?game.pos:[0,0];
- for(let i=0;i<=30;i++){
-  const a=-Math.PI/2+Math.PI*2*i/31;
+ const goal=goalTiles();board.dataset.goal=String(goal);
+ document.querySelector(".board-heading span").textContent="START → GOAL · "+goal+" STEPS";
+ document.querySelector(".board-legend span:last-child").textContent="GOAL · "+goal;
+ for(let i=0;i<=goal;i++){
+  const a=-Math.PI/2+Math.PI*2*i/(goal+1);
   const x=50+43*Math.cos(a),y=50+42*Math.sin(a);
   const cell=document.createElement("div");
   cell.className="cell";cell.style.left=x+"%";cell.style.top=y+"%";
   if(i===0)cell.classList.add("start");
-  if(i===30)cell.classList.add("goal");
+  if(i===goal)cell.classList.add("goal");
   const tokens=document.createElement("div");tokens.className="tokens";
   if(pos[0]===i){
    const im=document.createElement("img");im.src=$("avatar0").src;im.alt="プレイヤー1";tokens.append(im);
@@ -832,7 +837,7 @@ function drawBoard(){
    const im=document.createElement("img");im.src=$("avatar1").src;im.alt="プレイヤー2";tokens.append(im);
   }
   const n=document.createElement("div");n.className="n";
-  n.textContent=i===0?"START":i===30?"GOAL":String(i);
+  n.textContent=i===0?"START":i===goal?"GOAL":String(i);
   cell.append(tokens,n);board.append(cell);
  }
 }
@@ -842,8 +847,8 @@ function render(){
  const pos=game.pos||[0,0],finished=!!game.finished,phase=game.phase;
  for(let i=0;i<2;i++){
   $("player"+i).textContent=p[i]||"PLAYER "+(i+1);
-  $("playerPos"+i).textContent=(pos[i]||0)+" / 30 マス";
-  $("progress"+i).style.width=Math.min(100,(pos[i]||0)/30*100)+"%";
+  $("playerPos"+i).textContent=(pos[i]||0)+" / "+goalTiles()+" マス";
+  $("progress"+i).style.width=Math.min(100,(pos[i]||0)/goalTiles()*100)+"%";
   $("card"+i).classList.toggle("active",!finished&&game.turn===i);
  }
  drawBoard();
