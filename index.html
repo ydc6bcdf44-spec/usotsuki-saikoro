@@ -414,7 +414,23 @@ button:disabled{opacity:.45;cursor:not-allowed}
  #game .control{padding:4px 7px!important}
  #game .action-area p{margin:0 0 2px}
 }
-</style><style>#game #board[data-goal="15"] .cell{width:12%;height:13%}#goalSelect{margin-top:4px;color:#58786f}</style></head>
+</style><style>#game #board[data-goal="15"] .cell{width:12%;height:13%}#goalSelect{margin-top:4px;color:#58786f}</style><style>
+#game .dice-stage{perspective:450px;position:relative;overflow:visible}
+#game #dice.die{--half:36px;position:relative;display:block;padding:0;gap:0;border:0;border-radius:0;background:none;box-shadow:none;transform-style:preserve-3d;animation:none}
+#game #dice .cube-face{position:absolute;inset:0;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);gap:7%;padding:16%;border-radius:20%;background:linear-gradient(145deg,#fffef8,#f5ead4 65%,#d8c6a4);border:1px solid #fff7e6;box-shadow:inset 2px 2px 4px #fff,inset -2px -2px 5px #a995724d;backface-visibility:hidden}
+#game #dice .face-1{transform:translateZ(var(--half))}
+#game #dice .face-2{transform:rotateY(90deg) translateZ(var(--half))}
+#game #dice .face-3{transform:rotateX(-90deg) translateZ(var(--half))}
+#game #dice .face-4{transform:rotateX(90deg) translateZ(var(--half))}
+#game #dice .face-5{transform:rotateY(-90deg) translateZ(var(--half))}
+#game #dice .face-6{transform:rotateY(180deg) translateZ(var(--half))}
+#game #dice .pip{width:100%;height:100%;border-radius:50%}
+#game .dice-stage:before{content:"";position:absolute;bottom:7%;left:22%;width:56%;height:13%;background:#78664a55;filter:blur(4px);border-radius:50%}
+#game .cube-tumbling:before{animation:cubeShadow .85s ease-out}
+@keyframes cubeShadow{0%,100%{transform:scale(1);opacity:1}35%{transform:scale(.55);opacity:.35}}
+@media(max-width:760px){#game #dice.die{--half:19.5px}}
+@media(max-width:760px) and (max-height:670px){#game #dice.die{--half:15.5px}}
+</style></head>
 <body>
 <div class="shell">
 <header class="header">
@@ -542,14 +558,21 @@ function show(id,on){$(id).classList.toggle("hidden",!on)}
 function status(t){$("status").textContent=t}
 function name(){return ($("playerName").value.trim()||"プレイヤー").slice(0,12)}
 function setGameVisible(){show("lobby",false);show("waiting",room?.status==="waiting");show("game",room?.status==="playing")}
+const dieOrient={1:[0,0],2:[0,-90],3:[90,0],4:[-90,0],5:[0,90],6:[0,180]};
+let dieAnimation=null,dieDisplayed=5;
 function diceFace(n){
- const die=$("dice");die.replaceChildren();
- (DICE_PIPS[n]||DICE_PIPS[5]).forEach(index=>{
-  const pip=document.createElement("span");pip.className="pip";
-  pip.style.gridRow=String(Math.floor(index/3)+1);
-  pip.style.gridColumn=String(index%3+1);
-  die.append(pip);
- });
+ if(dieAnimation)return;
+ const die=$("dice");n=dieOrient[n]?n:5;
+ if(!die.querySelector(".cube-face")){
+ die.replaceChildren();
+ for(let v=1;v<=6;v++){
+ const face=document.createElement("div");face.className="cube-face face-"+v;
+ for(const index of DICE_PIPS[v]){const pip=document.createElement("span");pip.className="pip";pip.style.gridRow=String(Math.floor(index/3)+1);pip.style.gridColumn=String(index%3+1);face.append(pip)}
+ die.append(face);
+ }
+ }
+ dieDisplayed=n;
+ const [x,y]=dieOrient[n];die.style.transform="rotateX("+x+"deg) rotateY("+y+"deg)";
 }
 let cpuMode=false,cpuLevel="normal",cpuSecret=0,cpuTimer=null,cpuHistory=[],cpuLastHuman=0;
 const cpuNames={easy:"よわい",normal:"ふつう",hard:"つよい"};
@@ -613,7 +636,7 @@ function cpuAction(type,value){
  }
  if(actor!==0)return;
  cpuLastHuman=Date.now();
- if(type==="roll"&&phase==="roll"){ownRoll=1+Math.floor(Math.random()*6);game.claimant=0;game.phase="declare";game.message="本当の出目を確認して宣言しよう"}
+ if(type==="roll"&&phase==="roll"){ownRoll=Number.isInteger(value)&&value>=1&&value<=6?value:1+Math.floor(Math.random()*6);game.claimant=0;game.phase="declare";game.message="本当の出目を確認して宣言しよう"}
  else if(type==="declare"&&phase==="declare"&&Number.isInteger(value)&&value>=1&&value<=6){game.claim=value;game.phase="challenge";game.message="あなたは "+value+" と宣言した！"}
  else if((type==="doubt"||type==="believe")&&phase==="challenge"){sfx(type==="doubt"?"doubt":"tap");cpuResolve(type);return}
  else return;
@@ -1010,24 +1033,35 @@ function tick(){
  }
 }
 function animateDie(finalValue){
- const stage=$("diceStage");stage.classList.add("rolling");
- let count=0;
- const id=setInterval(()=>{
-  diceFace(1+Math.floor(Math.random()*6));
-  if(++count>=12){
-   clearInterval(id);diceFace(finalValue);stage.classList.remove("rolling");
-  }
- },65);
+ const stage=$("diceStage"),die=$("dice");diceFace(dieDisplayed);
+ if(dieAnimation)dieAnimation.cancel();
+ const from=die.style.transform;
+ const [x,y]=dieOrient[finalValue]||dieOrient[5];
+ stage.classList.add("cube-tumbling");
+ const anim=die.animate([{transform:from},{transform:"translateY(-12px) rotateX(230deg) rotateY(170deg)",offset:.3},{transform:"translateY(-5px) rotateX(510deg) rotateY(430deg)",offset:.7},{transform:"rotateX("+(720+x)+"deg) rotateY("+(720+y)+"deg)"}],{duration:850,easing:"cubic-bezier(.18,.65,.24,1)"});
+ dieAnimation=anim; soundSequence([[180,0,.08],[240,.17,.08],[150,.39,.09],[100,.76,.12]],.07);
+ return anim.finished.catch(()=>{}).then(()=>{if(dieAnimation!==anim)return;dieAnimation=null;stage.classList.remove("cube-tumbling");diceFace(finalValue)});
 }
 async function roll(){
  if(rolling||busy||!game||game.phase!=="roll"||game.turn!==myIndex)return;
  rolling=true;$("rollBtn").disabled=true;
- const n=1+Math.floor(Math.random()*6);animateDie(n);
- const rollRoom=room?.id;
- setTimeout(async()=>{
-  if(room?.id!==rollRoom)return;
-  rolling=false;$("rollBtn").disabled=false;await action("roll");
- },800);
+ const id=room?.id;
+ try{
+ if(cpuMode){
+ const n=1+Math.floor(Math.random()*6);await animateDie(n);
+ if(room?.id!==id)return;
+ cpuAction("roll",n);
+ }else{
+ busy=true;
+ const {error}=await db.rpc("game_action",{p_room_id:id,p_action:"roll",p_value:null});
+ if(error)throw error;
+ await loadOwnSecret();
+ if(room?.id!==id)return;
+ if(ownRoll!==null)await animateDie(ownRoll);
+ if(room?.id===id)await refresh();
+ }
+ }catch(e){status("操作エラー："+e.message);if(!cpuMode&&room?.id===id)await refresh()}
+ finally{if(room?.id===id){rolling=false;busy=false;$("rollBtn").disabled=false;render()}}
 }
 let resultShownFor="";
 function finishSound(won){
