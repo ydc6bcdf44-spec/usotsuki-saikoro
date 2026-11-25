@@ -497,7 +497,7 @@ button:active:not(:disabled){box-shadow:inset 0 2px 4px #59452c40,0 1px #78573e}
 .chat-log{background:#e8d7af;border:1px solid #bba06e;border-radius:6px}.chat-msg{background:#fff5d6;border-color:#d0ad75;color:#536c5d}.chat-msg.mine{background:#d9edcc}.chat-msg small{color:#796c50}
 .banner-card h2,.cutin-card strong,.result-headline{color:#397e70;text-shadow:0 2px #fff0c6,2px 3px #d2a96c}.result-kicker,.result-description{color:#775f43}.result-symbol{color:#e6ad45;text-shadow:0 2px #9e713e}
 @media(max-width:760px){#game .surface{border-width:2px;border-radius:8px;box-shadow:inset 0 0 0 1px #ffeac1,0 2px #76543f}#game .chat-actions button,#game .number-btn{border-width:1px;box-shadow:inset 0 1px #fff8,0 1px #78573e}#game .player{border-width:1px}#game .dice-stage{border-width:2px}}
-</style></head>
+</style><style>#game .avatar{object-fit:contain;image-rendering:auto;filter:drop-shadow(0 3px 2px #795e3e55)}#game #board[data-goal] .cell img{object-fit:contain;width:clamp(30px,4.8vw,58px);height:clamp(30px,4.8vw,58px);filter:drop-shadow(0 2px 1px #375a4c88)}@media(max-width:760px){#game #board[data-goal] .cell img{width:30px;height:30px}}</style></head>
 <body>
 <div class="shell">
 <header class="header">
@@ -1423,8 +1423,8 @@ window.addEventListener("pagehide",()=>{
  if(poller)clearInterval(poller);
 });
 
-$("avatar0").src=svgData(crabSvg);
-$("avatar1").src=svgData(octoSvg);
+$("avatar0").src="./assets/crab-player-1.png";
+$("avatar1").src="./assets/octopus-player-1.png";
 loadSettings();
 diceFace(5);
 try{connect()}catch(e){status("起動エラー："+e.message)}
