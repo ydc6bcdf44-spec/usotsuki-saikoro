@@ -579,6 +579,38 @@ body:has(#game:not(.hidden)){padding:max(6px,env(safe-area-inset-top)) 8px max(1
 #game .control .action-area button{min-height:33px}
 #game .control .dice-stage{margin:2px auto}
 }
+</style><style id="portrait-control-reflow">
+@media(max-width:760px){
+body:has(#game:not(.hidden)){height:100dvh!important;overflow:hidden!important;overscroll-behavior:none}
+body:has(#game:not(.hidden)) .shell{height:100%!important;min-height:0!important}
+#game:not(.hidden){grid-template-rows:50px max-content minmax(0,1fr)!important;gap:8px!important}
+#game .control{display:grid!important;grid-template-columns:68px minmax(0,1fr);grid-template-rows: auto auto auto auto auto auto;align-content:center;align-items:center;gap:4px 9px;align-self:end!important;min-height:0!important;max-height:100%!important;overflow:visible!important;padding:8px 10px!important}
+#game .control .turn-banner{grid-column:1/-1;grid-row:1;margin:0;padding:5px 7px}
+#game .control .phase-line{grid-column:2;grid-row:2;margin:0;gap:5px}
+#game .control .dice-stage{grid-column:1;grid-row:2/5;margin:0 auto;align-self:center}
+#game .control .message{grid-column:2;grid-row:3;min-height:0;padding:3px 5px;margin:0;font-size:11px;line-height:1.35;border-radius:5px;overflow-wrap:anywhere}
+#game .control .private{grid-column:2;grid-row:4;min-height:0;margin:0;font-size:10px;line-height:1.3}
+#game .control .private:empty,#game .control .setup-result:empty{display:none}
+#game .control #idleWarning{grid-column:1/-1;grid-row:5;margin:0;padding:3px;font-size:10px}
+#game .control .action-area:not(.hidden){grid-column:1/-1;grid-row:6;padding-top:5px}
+#game .control .action-area h3{margin:0 0 2px;line-height:1.3}
+#game .control .action-area p{margin:0 0 3px;line-height:1.25}
+#game .control .action-area button{min-height:38px;padding:5px 7px}
+#game .control .start-dice-pair{margin:3px 0;gap:6px}
+#game .control .start-die-card{padding:2px 5px}
+#game .control .start-die-card strong[data-face]:not([data-face=""]){min-width:26px;min-height:26px}
+#game .control .setup-result{margin:2px 0;min-height:0}
+#game .control:has(#diceStage.hidden) .phase-line,#game .control:has(#diceStage.hidden) .message,#game .control:has(#diceStage.hidden) .private{grid-column:1/-1}
+}
+@media(max-width:760px) and (max-height:650px){
+#game:not(.hidden){grid-template-rows:44px max-content minmax(0,1fr)!important;gap:5px!important}
+#game .control{gap:2px 7px;padding:5px 8px!important}
+#game .control .action-area button{min-height:34px}
+#game .control .turn-banner{padding:3px 6px}
+#game .control .action-area p{font-size:10px}
+#game .control .action-area:not(.hidden){padding-top:3px}
+#game .control .start-die-card{padding:1px 4px}
+}
 </style></head>
 <body>
 <div class="shell">
