@@ -777,7 +777,7 @@ async function startSync(){
   .on("postgres_changes",{event:"INSERT",schema:"public",table:"game_chat_messages",filter:"room_id=eq."+room.id},()=>loadChat())
   .subscribe();
  if(poller)clearInterval(poller);
- poller=setInterval(()=>{if(!document.hidden){refresh();if(room?.status==="playing")loadChat()}},4000);
+ let pollCount=0;poller=setInterval(()=>{if(!document.hidden){refresh();if(++pollCount%6===0&&room?.status==="playing")loadChat()}},700);
  if(ticker)clearInterval(ticker);
  ticker=setInterval(tick,200);
  if(room.status==="playing")loadChat();
@@ -789,7 +789,6 @@ function receive(row){
  if(row.status==="playing"){
   game=row.game_state||{};setGameVisible();
   if(game.phase==="setup")showMatchBanner();
-  if(game.finished)onGameFinished();
   render();
  }else if(row.status==="finished"||row.status==="expired"){
   game=row.game_state||game;
@@ -915,10 +914,22 @@ function showDoubtCutin(){
  soundSequence(success?[[440,0,.12],[660,.12,.18],[880,.28,.3]]:[[400,0,.14],[270,.15,.19],[190,.34,.28]]);
  clearTimeout(cutInTimer);cutInTimer=setTimeout(()=>show("doubtCutin",false),1600);
 }
+let walkTimer=null,walkTarget=null,walkRoom=null;
 function animateTokens(pos){
- const prev=lastRenderedPositions;lastRenderedPositions=[...pos];
- if(!prev)return;
- for(let i=0;i<2;i++){if(pos[i]===prev[i])continue;const cell=document.querySelectorAll("#board .cell")[pos[i]];if(cell){cell.classList.add("token-hop")}}
+ const id=room?.id;
+ if(walkRoom!==id||!lastRenderedPositions){clearTimeout(walkTimer);walkTimer=null;walkRoom=id;lastRenderedPositions=[...pos];walkTarget=[...pos];drawBoard(pos);return}
+ walkTarget=[...pos];
+ if(walkTimer)return;
+ if(lastRenderedPositions.every((v,i)=>v===pos[i])){if(!$("board").children.length)drawBoard(pos);return}
+ function step(){
+ if(room?.id!==id){walkTimer=null;return}
+ const prev=[...lastRenderedPositions];
+ const next=prev.map((v,i)=>v+Math.sign(walkTarget[i]-v));
+ lastRenderedPositions=next;drawBoard(next);
+ next.forEach((v,i)=>{if(v!==prev[i]){const im=$("board").querySelectorAll(".cell")[v]?.querySelector('img[alt="プレイヤー'+(i+1)+'"]');if(im)im.animate([{transform:"translateY(0)"},{transform:"translateY(-12px)",offset:.45},{transform:"translateY(0)"}],{duration:240,easing:"ease-out"})}});
+ walkTimer=setTimeout(()=>{walkTimer=null;if(lastRenderedPositions.some((v,i)=>v!==walkTarget[i]))step();else if(game?.finished)onGameFinished()},260);
+ }
+ step();
 }
 function recordLocalHistory(won){
  if(!room||!user)return;
@@ -935,9 +946,9 @@ function playVictoryFanfare(){
  stopBgm();if(!$("bgmToggle").checked)return;
  try{initAudio();[523.25,659.25,783.99,1046.5,783.99,1046.5,1318.51].forEach((hz,i)=>{const at=audio.currentTime+i*.16,o=audio.createOscillator(),g=audio.createGain();o.type="triangle";o.frequency.value=hz;g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Number($("bgmVolume").value)/100*.055,at+.02);g.gain.exponentialRampToValueAtTime(.0001,at+.3);o.connect(g);g.connect(audio.destination);o.start(at);o.stop(at+.32)})}catch(e){}
 }
-function drawBoard(){
+function drawBoard(displayPos){
  const board=$("board");board.replaceChildren();
- const pos=Array.isArray(game?.pos)?game.pos:[0,0];
+ const pos=displayPos|| (Array.isArray(game?.pos)?game.pos:[0,0]);
  const goal=goalTiles();board.dataset.goal=String(goal);
  document.querySelector(".board-heading span").textContent="START → GOAL · "+goal+" STEPS";
  document.querySelector(".board-legend span:last-child").textContent="GOAL · "+goal;
@@ -970,12 +981,12 @@ function render(){
   $("progress"+i).style.width=Math.min(100,(pos[i]||0)/goalTiles()*100)+"%";
   $("card"+i).classList.toggle("active",!finished&&game.turn===i);
  }
- drawBoard();
  animateTokens(pos);
  showDoubtCutin();
  const setup=phase==="setup";
+ if(!setup&&Array.isArray(game.setupRolls)&&game.startReadyAt){const key=room?.id+":"+game.startReadyAt;if(setupRevealKey!==key){setupRevealKey=key;setupLocalRevealUntil=phase==="roll"&&pos.every(v=>v===0)&&Date.now()-Number(game.startReadyAt)<8000?Date.now()+3000:0}}
  if(setup)syncStartRollLock();
- const reveal=!setup&&Array.isArray(game.setupRolls)&&Date.now()<Number(game.startReadyAt||0);
+ const reveal=!setup&&Array.isArray(game.setupRolls)&&Date.now()<Math.max(Number(game.startReadyAt||0),setupLocalRevealUntil);
  show("setupArea",setup||reveal);
  show("rollArea",!finished&&!setup&&!reveal&&phase==="roll"&&game.turn===myIndex);
  show("declareArea",!finished&&!setup&&phase==="declare"&&game.turn===myIndex);
@@ -990,7 +1001,7 @@ function render(){
  $("message").textContent=opponentActing?"相手の行動を待っています…":game.message||"";
  $("leaveFromSettings").classList.toggle("hidden",!room||room.status!=="playing");
  // Hide the dice when waiting for the opponent; never reveal their private roll.
- const waitingForOpponent=(setup&&setupSubmitted===Number(game.setupAttempt||0))||(!setup&&!finished&&((phase==="roll"||phase==="declare")&&game.turn!==myIndex));
+ const waitingForOpponent=!reveal&&((setup&&setupSubmitted===Number(game.setupAttempt||0))||(!setup&&!finished&&((phase==="roll"||phase==="declare")&&game.turn!==myIndex)));
  show("diceStage",!waitingForOpponent);
  if(setup||reveal){
   const ready=timestampMs(game.matchFoundAt)+3000;
@@ -1002,7 +1013,7 @@ function render(){
   const ownVisible=sessionStorage.getItem("start-visible:"+room.id+":"+a);
   $("startMine").textContent=visible?.[myIndex]??ownVisible??"？";
   $("startOpponent").textContent=visible?.[1-myIndex]??"待機中";
-  $("setupResult").textContent=visible?"両方の出目がそろいました！":"";
+  $("setupResult").textContent=visible?(reveal?(game.turn===myIndex?"あなたが先攻！":"相手が先攻！"):"両方の出目がそろいました！"):"";
   diceFace(5);$("privateRoll").textContent="";
   if(setup&&Array.isArray(game.setupRolls))autoReroll();
  }else if(phase==="declare"&&game.claimant===myIndex&&ownRoll!==null){
@@ -1015,10 +1026,10 @@ function render(){
  if(finished)onGameFinished();
  tick();
 }
-let startRevealFinishedFor="",idleCheckBusy=false;
+let startRevealFinishedFor="",idleCheckBusy=false,setupLocalRevealUntil=0,setupRevealKey="";
 function tick(){
  if(game&&game.phase==="roll"&&Array.isArray(game.setupRolls)){
-  const ready=Number(game.startReadyAt||0);
+  const ready=Math.max(Number(game.startReadyAt||0),setupLocalRevealUntil);
   const key=(room?.id||"")+":"+ready;
   if(ready>0&&Date.now()>=ready&&startRevealFinishedFor!==key){
    startRevealFinishedFor=key;
@@ -1105,7 +1116,7 @@ async function saveFinishedMatchStats(roomId){
  }finally{matchStatsInFlight.delete(roomId)}
 }
 function onGameFinished(){
- if(!game?.finished)return;
+ if(!game?.finished||walkTimer|| (lastRenderedPositions&&game.pos?.some((v,i)=>v!==lastRenderedPositions[i])))return;
  const winner=Number(game.winner),mine=winner===myIndex;
  $("winnerTitle").textContent=mine?"YOU WIN":"GAME OVER";
  $("winnerText").textContent=(game.players?.[winner]||"プレイヤー")+" の勝利！";
@@ -1159,7 +1170,7 @@ function goTitle(){
  stopSync();if(bannerTimer)clearTimeout(bannerTimer);
  room=null;game=null;myIndex=-1;ownRoll=null;busy=false;rolling=false;
  setupSubmitted=-1;setupAuto=-1;bannerKey=null;
- lastRenderedPositions=null;lastCutInKey="";lastCountdownKey="";show("doubtCutin",false);
+ clearTimeout(walkTimer);walkTimer=null;walkRoom=null;lastRenderedPositions=null;lastCutInKey="";lastCountdownKey="";show("doubtCutin",false);
  if($("bgmToggle").checked&&!bgmTimer)startMusicOnInteraction();
  show("lobby",true);show("waiting",false);show("game",false);
  show("matchBanner",false);show("leaveBanner",false);
