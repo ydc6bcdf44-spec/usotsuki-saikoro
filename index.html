@@ -478,6 +478,25 @@ body:has(#lobby:not(.hidden)) .footer{margin:8px 0}
 #game #board[data-goal] .cell:has(img){z-index:9}
 @media(max-width:480px){#game #board[data-goal] .cell img{width:26px;height:26px}#game #board[data-goal] .cell .n{font-size:6px}}
 @media(prefers-reduced-motion:reduce){#game .island-art *{animation:none!important}}
+</style><style id="island-ui-unified">
+:root{--ink:#395c58;--paper:#fff2cf;--line:#b98a58;--muted:#6b8070}
+html{background:#429fae}body{background:radial-gradient(ellipse at 50% 0,#b7f1d9aa,transparent 55%),repeating-linear-gradient(135deg,#ffffff09 0 2px,transparent 2px 9px),linear-gradient(155deg,#8bdbd2,#52b8c5 60%,#378fa9);font-family:"Zen Maru Gothic",sans-serif}
+.header{color:#245e64}.brand h1{color:#fff2cc;text-shadow:0 2px #865f3d,2px 0 #865f3d,-2px 0 #865f3d,0 -2px #865f3d,0 4px #346a68;font-family:"DotGothic16",sans-serif}.brand small{color:#245e64;font-weight:900}.brand-mark{border-radius:8px;background:linear-gradient(#fff2c7,#e7ac62);border:2px solid #a16b3e;box-shadow:inset 0 0 0 2px #ffe5a0,0 3px #815b43;color:#785035}
+.surface,.modal,.banner-card,.cutin-card,.result-card{background:repeating-linear-gradient(0deg,#cfa56a08 0 1px,transparent 1px 5px),linear-gradient(145deg,#fff7dd,#f4dfb4);border:3px solid #a77749;border-radius:12px;box-shadow:inset 0 0 0 2px #ffeac1,inset 0 0 0 4px #d8b37b,0 4px 0 #76543f,0 9px 18px #215d6940;color:#4f6252}
+.lobby{isolation:isolate}.lobby:before{inset:0;width:auto;height:auto;border-radius:0;background:linear-gradient(180deg,#fff0c500 0%,#fff0c533 30%,#fff0c5 66%),url("./assets/island-background.webp") center top/cover no-repeat;opacity:.32;z-index:-1}.lobby h2{color:#326e65;text-shadow:1px 2px #fff1bc,2px 3px #caa56b}.lobby-copy,.rule-note,.field-label{color:#526b5b}.eyebrow{color:#8e653e}.field,select{background:#fff8e3;border:2px solid #c6a26c;border-radius:7px;color:#365d56;box-shadow:inset 0 2px 3px #a77d4b20}
+.primary,.gold-btn,.secondary,.danger,.icon-btn,.number-btn,.chat-actions button{border-radius:7px;border:2px solid #8e704b;box-shadow:inset 0 2px #ffffff70,inset 0 -3px #624c3826,0 3px #78573e;font-weight:900;text-shadow:0 1px #ffffff35}
+.primary{background:linear-gradient(#76d4ba,#329a8c);color:#fff9df;border-color:#326f67;text-shadow:0 1px #235b56}
+.gold-btn,.number-btn{background:linear-gradient(#ffe8a4,#e8ad58);color:#68492e;border-color:#a87940}
+.secondary,.icon-btn,.chat-actions button{background:linear-gradient(#fff4d7,#e8d0a1);color:#65553e;border-color:#ae8958}
+.danger{background:linear-gradient(#f7a78c,#d96660);color:#fff7dc;border-color:#a34e43;text-shadow:0 1px #853d35}
+button:active:not(:disabled){box-shadow:inset 0 2px 4px #59452c40,0 1px #78573e}
+.player{background:linear-gradient(145deg,#fef5d9,#e8d7a9);border:2px solid #bda06d;border-radius:8px;box-shadow:inset 0 0 0 1px #fff4d1}.player.active{outline:2px solid #d7a443;background:linear-gradient(#fff4c8,#f4d899);box-shadow:0 0 8px #f8d56e80}.player-info strong{color:#41675d}.player-info small{color:#6d7058}.avatar{filter:drop-shadow(0 2px 1px #6b594c55)}.progress{background:#b99d7050;border:1px solid #aa8a5d;border-radius:3px}.progress span{background:linear-gradient(#9de4a4,#42a884);border-radius:2px}
+.board-heading h3,.panel-title h3,.action-area h3{color:#42695e;text-shadow:0 1px #fff5d6}.board-heading span,.board-legend{color:#786749}.board-wrap,#game .board-wrap{border-color:#a7794c!important;border-radius:8px;box-shadow:0 0 0 2px #f9df9e,inset 0 0 0 2px #fff1b5}
+.turn-banner{border-radius:6px;background:#f0d69b;border:2px solid #b48b50;color:#705437;box-shadow:inset 0 1px #fff5cf,0 2px #ad8856}.turn-banner.mine{background:linear-gradient(#a4e2ba,#78c7a6);border-color:#4b947c;color:#245b50;box-shadow:0 2px #4b947c}.turn-banner.theirs{background:linear-gradient(#e6d7e8,#c9b7d5);border-color:#9b84aa;color:#665074;box-shadow:0 2px #9b84aa}
+.phase-tag,.timer{background:#f9e6b8;color:#70583d;border:1px solid #b28b54;border-radius:5px}.action-area p,.setup-result{color:#6d7058}.start-die-card{background:#fff0c9;border:2px solid #c4a36b;border-radius:7px}.dice-stage{background:radial-gradient(ellipse,#e7c78b,#a77646);border:3px solid #8d603d;border-radius:9px;box-shadow:inset 0 0 0 2px #e9bc7d,inset 0 4px 8px #69452c55,0 3px #75513b}
+.chat-log{background:#e8d7af;border:1px solid #bba06e;border-radius:6px}.chat-msg{background:#fff5d6;border-color:#d0ad75;color:#536c5d}.chat-msg.mine{background:#d9edcc}.chat-msg small{color:#796c50}
+.banner-card h2,.cutin-card strong,.result-headline{color:#397e70;text-shadow:0 2px #fff0c6,2px 3px #d2a96c}.result-kicker,.result-description{color:#775f43}.result-symbol{color:#e6ad45;text-shadow:0 2px #9e713e}
+@media(max-width:760px){#game .surface{border-width:2px;border-radius:8px;box-shadow:inset 0 0 0 1px #ffeac1,0 2px #76543f}#game .chat-actions button,#game .number-btn{border-width:1px;box-shadow:inset 0 1px #fff8,0 1px #78573e}#game .player{border-width:1px}#game .dice-stage{border-width:2px}}
 </style></head>
 <body>
 <div class="shell">
