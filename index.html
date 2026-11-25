@@ -915,7 +915,6 @@ function showDoubtCutin(){
  clearTimeout(cutInTimer);cutInTimer=setTimeout(()=>show("doubtCutin",false),1600);
 }
 let walkTimer=null,walkTarget=null,walkRoom=null;
-let walkTimer=null,walkTarget=null,walkRoom=null;
 function animateTokens(pos){
  const id=room?.id;
  if(walkRoom!==id||!lastRenderedPositions){clearTimeout(walkTimer);walkTimer=null;walkRoom=id;lastRenderedPositions=[...pos];walkTarget=[...pos];drawBoard(pos);return}
@@ -984,7 +983,6 @@ function render(){
  animateTokens(pos);
  showDoubtCutin();
  const setup=phase==="setup";
- if(!setup&&Array.isArray(game.setupRolls)&&game.startReadyAt){const key=room?.id+":"+game.startReadyAt;if(setupRevealKey!==key){setupRevealKey=key;setupLocalRevealUntil=phase==="roll"&&pos.every(v=>v===0)&&Date.now()-Number(game.startReadyAt)<8000?Date.now()+3000:0}}
  if(!setup&&Array.isArray(game.setupRolls)&&game.startReadyAt){const key=room?.id+":"+game.startReadyAt;if(setupRevealKey!==key){setupRevealKey=key;setupLocalRevealUntil=phase==="roll"&&pos.every(v=>v===0)&&Date.now()-Number(game.startReadyAt)<8000?Date.now()+3000:0}}
  if(setup)syncStartRollLock();
  const reveal=!setup&&Array.isArray(game.setupRolls)&&Date.now()<Math.max(Number(game.startReadyAt||0),setupLocalRevealUntil);
@@ -1171,7 +1169,7 @@ function goTitle(){
  stopSync();if(bannerTimer)clearTimeout(bannerTimer);
  room=null;game=null;myIndex=-1;ownRoll=null;busy=false;rolling=false;
  setupSubmitted=-1;setupAuto=-1;bannerKey=null;
- clearTimeout(walkTimer);walkTimer=null;walkRoom=null;clearTimeout(walkTimer);walkTimer=null;walkRoom=null;lastRenderedPositions=null;lastCutInKey="";lastCountdownKey="";show("doubtCutin",false);
+ clearTimeout(walkTimer);walkTimer=null;walkRoom=null;lastRenderedPositions=null;lastCutInKey="";lastCountdownKey="";show("doubtCutin",false);
  if($("bgmToggle").checked&&!bgmTimer)startMusicOnInteraction();
  show("lobby",true);show("waiting",false);show("game",false);
  show("matchBanner",false);show("leaveBanner",false);
