@@ -526,6 +526,23 @@ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:2px 10px!importan
 #game .chat-panel{padding:2px!important}
 #game .chat-actions button{min-height:25px!important;padding:2px!important}
 }
+</style><style id="relaxed-mobile-layout">
+@media(max-width:760px){
+body:has(#game:not(.hidden)){padding:max(6px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))!important}
+body:has(#game:not(.hidden)) .header{height:30px!important;min-height:30px!important;flex-basis:30px!important;margin:0 0 7px!important}
+body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!important}
+#game:not(.hidden){grid-template-rows:50px max-content minmax(0,1fr) max-content!important;gap:8px!important}
+#game .players{padding:4px!important;gap:6px!important}
+#game .board-panel{border-width:2px!important;padding:2px!important}
+#game .control{padding:8px 10px!important;justify-content:center;overflow-y:auto!important}
+#game .control .turn-banner{padding:6px 8px;margin-bottom:5px}
+#game .control .action-area{padding-top:5px}
+#game .control .action-area button{min-height:36px;padding:6px 9px}
+#game .chat-panel{padding:5px!important}
+#game .chat-actions{gap:5px!important}
+#game .chat-actions button{min-height:32px!important;padding:4px!important}
+}
+@media(max-width:760px) and (max-height:620px){#game:not(.hidden){gap:5px!important;grid-template-rows:44px max-content minmax(0,1fr) max-content!important}#game .chat-actions button{min-height:27px!important}#game .control{padding:4px 8px!important}}
 </style></head>
 <body>
 <div class="shell">
