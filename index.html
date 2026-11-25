@@ -433,7 +433,7 @@ button:disabled{opacity:.45;cursor:not-allowed}
   <button class="secondary" id="randomBtn">ランダムマッチ</button>
   <button class="secondary" id="showJoinBtn">招待コードで参加</button>
  </div>
- <div id="joinArea" class="hidden">
+ <div style="margin-top:12px"><label class="field-label" for="cpuLevel">ひとりで遊ぶ · CPU難易度</label><select class="field" id="cpuLevel"><option value="easy">よわい</option><option value="normal" selected>ふつう</option><option value="hard">つよい</option></select><button class="gold-btn wide" id="cpuBtn" style="margin-top:8px">CPUと対戦する</button><p id="cpuStats" style="font-size:11px"></p></div><div id="joinArea" class="hidden">
   <label class="field-label" for="joinCode">招待コード</label>
   <input class="field" id="joinCode" maxlength="6" placeholder="6桁のコード">
   <button class="gold-btn wide" id="joinBtn" style="margin-top:8px">この部屋に参加</button>
@@ -550,6 +550,78 @@ function diceFace(n){
   pip.style.gridColumn=String(index%3+1);
   die.append(pip);
  });
+}
+let cpuMode=false,cpuLevel="normal",cpuSecret=0,cpuTimer=null,cpuHistory=[],cpuLastHuman=0;
+const cpuNames={easy:"よわい",normal:"ふつう",hard:"つよい"};
+function cpuStats(){
+ let a={};try{a=JSON.parse(localStorage.getItem("island-cpu-stats")||"{}")}catch(e){}
+ return a;
+}
+function showCpuStats(){
+ const a=cpuStats();$("cpuStats").textContent=Object.keys(cpuNames).map(k=>cpuNames[k]+" "+(a[k]?.wins||0)+"勝 "+(a[k]?.losses||0)+"敗").join(" ／ ");
+}
+function startCpu(){
+ if(room||busy)return;
+ stopSync();cpuMode=true;cpuLevel=$("cpuLevel").value;cpuHistory=[];cpuSecret=0;cpuLastHuman=Date.now();
+ room={id:"cpu-"+Date.now(),status:"playing"};myIndex=0;ownRoll=null;setupSubmitted=-1;setupAuto=-1;
+ game={...initialState(name()||"あなた"),players:[name()||"あなた","CPU（"+cpuNames[cpuLevel]+"）"],phase:"setup",setupAttempt:0,matchFoundAt:Date.now()-3000};
+ $("floatingChat").replaceChildren();$("chatLog").replaceChildren();show("chatError",false);setGameVisible();startMusicOnInteraction();render();ticker=setInterval(tick,200);
+}
+function cpuSetup(){
+ if(game.phase!=="setup"||busy)return;
+ busy=true;const id=room.id,a=1+Math.floor(Math.random()*6),b=1+Math.floor(Math.random()*6);animateDie(a);
+ setTimeout(()=>{if(!cpuMode||room?.id!==id)return;busy=false;game.setupRolls=[a,b];if(a===b){game.setupAttempt++;game.message="同じ目！もう一度振ろう";render();return}
+ game.turn=a>b?0:1;game.phase="roll";game.startReadyAt=Date.now()+3000;game.deadline=game.startReadyAt+30000;game.message=a>b?"あなたが先攻！":"CPUが先攻！";cpuLastHuman=Date.now();render();scheduleCpu();
+ },800);
+}
+function scheduleCpu(){
+ clearTimeout(cpuTimer);if(!cpuMode||game.finished)return;
+ const actor=game.phase==="challenge"?1-game.turn:game.turn;
+ if(game.phase==="setup"||actor!==1)return;
+ const id=room.id,phase=game.phase;
+ cpuTimer=setTimeout(()=>{if(!cpuMode||room?.id!==id||game.phase!==phase||game.finished)return;
+ if(phase==="roll"){cpuSecret=1+Math.floor(Math.random()*6);game.phase="declare";game.claimant=1;game.deadline=Date.now()+30000;render();scheduleCpu()}
+ else if(phase==="declare"){
+ const r=Math.random(),remaining=goalTiles()-game.pos[1];let claim=cpuSecret;
+ if(cpuLevel==="easy"){if(r<.45)claim=1+Math.floor(Math.random()*6)}
+ else if(cpuLevel==="normal"){if(r<.38&&cpuSecret<5)claim=5+Math.floor(Math.random()*2)}
+ else if(cpuSecret<Math.min(6,remaining)&&r<.45)claim=Math.min(6,Math.max(cpuSecret+1,remaining));
+ game.claim=claim;game.phase="challenge";game.message="CPUは "+claim+" と宣言した！";game.deadline=Date.now()+30000;render();
+ }else if(phase==="challenge"){
+ const c=game.claim,observed=cpuHistory.filter(x=>x.claim===c),rate=observed.length?(observed.filter(x=>x.lied).length+1)/(observed.length+2):.35;
+ const chance=cpuLevel==="easy"?.23:cpuLevel==="normal"?.15+c*.075:Math.min(.92,.12+c*.055+rate*.35+(game.pos[0]+c>=goalTiles()?.2:0));
+ cpuResolve(Math.random()<chance?"doubt":"believe");
+ }
+ },Math.max(0,Number(game.startReadyAt||0)-Date.now())+900+Math.random()*500);
+}
+function cpuResolve(type){
+ const p=game.turn,q=1-p,c=game.claim,real=p===0?ownRoll:cpuSecret;
+ if(type==="believe"){game.pos[p]=Math.min(goalTiles(),game.pos[p]+c);game.message="信じた！宣言者が "+c+" マス進んだ！"}
+ else if(c!==real){game.pos[p]=Math.max(0,game.pos[p]-3);game.message="ダウト成功！嘘をついた人が3マス戻った！"}
+ else{game.pos[p]=Math.min(goalTiles(),game.pos[p]+c);game.pos[q]=Math.max(0,game.pos[q]-3);game.message="ダウト失敗！正直者が "+c+" マス進み、疑った人が3マス戻った！"}
+ if(p===0&&type==="doubt")cpuHistory.push({claim:c,lied:c!==real});
+ if(game.pos[p]>=goalTiles()){game.finished=true;game.winner=p;game.deadline=null}
+ else{game.turn=q;game.phase="roll";game.claim=null;game.claimant=null;game.deadline=Date.now()+30000}
+ ownRoll=null;cpuSecret=0;render();scheduleCpu();
+}
+function cpuAction(type,value){
+ if(!cpuMode||!game||game.finished||busy||Date.now()<Number(game.startReadyAt||0))return;
+ const phase=game.phase,actor=phase==="challenge"?1-game.turn:game.turn;
+ if(type==="timeout"){
+ if(phase==="challenge"){cpuResolve("believe");return}
+ game.turn=1-game.turn;game.phase="roll";game.claim=null;game.claimant=null;game.deadline=Date.now()+30000;game.message="時間切れ！ターン交代！";ownRoll=null;cpuSecret=0;render();scheduleCpu();return;
+ }
+ if(actor!==0)return;
+ cpuLastHuman=Date.now();
+ if(type==="roll"&&phase==="roll"){ownRoll=1+Math.floor(Math.random()*6);game.claimant=0;game.phase="declare";game.message="本当の出目を確認して宣言しよう"}
+ else if(type==="declare"&&phase==="declare"&&Number.isInteger(value)&&value>=1&&value<=6){game.claim=value;game.phase="challenge";game.message="あなたは "+value+" と宣言した！"}
+ else if((type==="doubt"||type==="believe")&&phase==="challenge"){sfx(type==="doubt"?"doubt":"tap");cpuResolve(type);return}
+ else return;
+ game.deadline=Date.now()+30000;render();scheduleCpu();
+}
+function saveCpuResult(won){
+ const a=cpuStats(),r=a[cpuLevel]||{wins:0,losses:0};r[won?"wins":"losses"]++;a[cpuLevel]=r;
+ try{localStorage.setItem("island-cpu-stats",JSON.stringify(a))}catch(e){}showCpuStats();
 }
 function selectedGoal(){return Number($("goalSelect").value)===15?15:30}
 function goalTiles(){return Number(game?.goal)===15?15:30}
@@ -685,6 +757,7 @@ function receive(row){
  }
 }
 async function refresh(){
+ if(cpuMode)return;
  if(!room)return;
  const {data,error}=await db.from("game_rooms").select("*").eq("id",room.id).maybeSingle();
  if(!error&&data)receive(data);
@@ -718,6 +791,7 @@ function syncStartRollLock(){
  }
 }
 async function setupRoll(){
+ if(cpuMode){cpuSetup();return}
  if(!room||!game||game.phase!=="setup"||busy)return;
  const attempt=Number(game.setupAttempt||0);
  syncStartRollLock();
@@ -759,6 +833,7 @@ function autoReroll(){
  },1000);
 }
 async function action(type,value=null){
+ if(cpuMode){cpuAction(type,value);return}
  if(!room||busy)return;busy=true;
  try{
   const {error}=await db.rpc("game_action",{p_room_id:room.id,p_action:type,p_value:value});
@@ -915,14 +990,15 @@ function tick(){
   $("timer").textContent=left?String(left):"GO";$("timer").classList.remove("danger");return;
  }
  if(Array.isArray(game.setupRolls)&&Date.now()<Number(game.startReadyAt||0)){$("timer").textContent=String(Math.ceil((Number(game.startReadyAt)-Date.now())/1000));$("timer").classList.remove("danger");return;}
- const idleSince=Number(game.lastHumanActionAt||0);
+ if(cpuMode&&game.phase!=="setup"&&Date.now()-cpuLastHuman>=150000){game.finished=true;game.winner=1;game.message="放置による強制終了";render();return}
+ const idleSince=cpuMode?cpuLastHuman:Number(game.lastHumanActionAt||0);
  const idleMs=idleSince?Date.now()-idleSince:0;
- const idleTarget=Number(game.idlePlayer??game.turn);
+ const idleTarget=cpuMode?0:Number(game.idlePlayer??game.turn);
  if(idleSince&&idleMs>=120000&&!game.finished){
   const seconds=Math.max(0,Math.ceil((150000-idleMs)/1000));
   $("idleWarning").textContent=(idleTarget===myIndex?"操作してください！":"相手が操作していません。")+" あと"+seconds+"秒で放置による強制敗北になります。";
   show("idleWarning",true);
-  if(idleMs>=150000&&!idleCheckBusy&&!busy){idleCheckBusy=true;action("idle_forfeit").finally(()=>idleCheckBusy=false)}
+  if(!cpuMode&&idleMs>=150000&&!idleCheckBusy&&!busy){idleCheckBusy=true;action("idle_forfeit").finally(()=>idleCheckBusy=false)}
  }else show("idleWarning",false);
  const deadline=Number(game.deadline||0);
  if(!deadline){$("timer").textContent="--";return}
@@ -947,7 +1023,9 @@ async function roll(){
  if(rolling||busy||!game||game.phase!=="roll"||game.turn!==myIndex)return;
  rolling=true;$("rollBtn").disabled=true;
  const n=1+Math.floor(Math.random()*6);animateDie(n);
+ const rollRoom=room?.id;
  setTimeout(async()=>{
+  if(room?.id!==rollRoom)return;
   rolling=false;$("rollBtn").disabled=false;await action("roll");
  },800);
 }
@@ -987,12 +1065,12 @@ function onGameFinished(){
   $("resultDescription").textContent=mine?"ゴール到達！島の冒険を制覇したよ！":"今回は相手が先にゴール。次こそリベンジ！";
   const sparkles=$("resultSparkles");sparkles.replaceChildren();
   if(mine)for(let i=0;i<34;i++){const dot=document.createElement("i");dot.style.setProperty("--x",Math.random()*100+"%");dot.style.setProperty("--c",["#f4d66c","#a4d7ca","#f4a6b5","#fff","#a5b4f0"][i%5]);dot.style.setProperty("--d",(1.7+Math.random()*1.8)+"s");dot.style.setProperty("--delay",(-Math.random()*3)+"s");sparkles.append(dot)}
-  recordLocalHistory(mine);
+  if(cpuMode)saveCpuResult(mine);else recordLocalHistory(mine);
   show("resultOverlay",true);finishSound(mine);
   if(mine)playVictoryFanfare();
  }
 
- if(room)saveFinishedMatchStats(room.id);
+ if(room&&!cpuMode)saveFinishedMatchStats(room.id);
 }
 function opponentLeft(message){
  stopSync();localStorage.removeItem(ROOM_KEY);
@@ -1005,6 +1083,7 @@ function stopSync(){
  if(channel){db.removeChannel(channel);channel=null}
 }
 async function leaveRoom(){
+ if(cpuMode){goTitle();return true}
  if(!room){goTitle();return true}
  const current=room;
  try{
@@ -1021,6 +1100,7 @@ async function leaveRoom(){
  return true;
 }
 function goTitle(){
+ cpuMode=false;clearTimeout(cpuTimer);
  stopSync();if(bannerTimer)clearTimeout(bannerTimer);
  room=null;game=null;myIndex=-1;ownRoll=null;busy=false;rolling=false;
  setupSubmitted=-1;setupAuto=-1;bannerKey=null;
@@ -1031,6 +1111,7 @@ function goTitle(){
  status("タイトルに戻りました");
 }
 async function sendChat(key){
+ if(cpuMode){floatChatMessages([{sender_id:"local",created_at:new Date().toISOString(),message_key:key}],room.id);sfx("chat");return}
  if(!room||room.status!=="playing"||!user||chatBusy||Date.now()-lastChatAt<800)return;
  chatBusy=true;lastChatAt=Date.now();
  try{
@@ -1135,6 +1216,7 @@ function toggleBgm(){
  if(!bgmTimer){playBgmNote();bgmTimer=setInterval(playBgmNote,360)}
 }
 
+$("cpuBtn").onclick=startCpu;showCpuStats();
 $("createBtn").onclick=()=>{status("部屋を作成しています…");createRoom()};
 $("randomBtn").onclick=()=>{status("ランダムマッチを開始しています…");randomMatch()};
 $("showJoinBtn").onclick=()=>show("joinArea",true);
