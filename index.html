@@ -394,6 +394,26 @@ button:disabled{opacity:.45;cursor:not-allowed}
 #game .die{background:linear-gradient(135deg,#fff 0%,#fffaf0 48%,#e8d9bd 100%);border:1px solid #fff;box-shadow:inset 2px 2px 3px #fff,inset -3px -3px 4px #c8b99b,4px 6px 0 #b9a98b,5px 10px 10px #574a3855;transform:rotate(-8deg) skewY(3deg)}
 #game .die .pip{background:radial-gradient(circle at 65% 70%,#6b5952,#342b2a 75%);box-shadow:inset 1px 2px 2px #211c1c,0 1px 0 #fff}
 #game .rolling .die{animation:dieShake .12s infinite}
+</style><style>
+@media(min-width:761px){
+ body:has(#game:not(.hidden)) .shell{width:min(1500px,100%)}
+ #game:not(.hidden){grid-template-columns:minmax(0,1fr) minmax(280px,320px);gap:10px}
+ #game .board-panel{padding:5px}
+ #game .board-wrap{aspect-ratio:auto;height:min(70dvh,760px);min-height:300px}
+ #game .board-legend{margin:3px 0}
+}
+@media(max-width:760px){
+ #game:not(.hidden){grid-template-rows:42px minmax(0,1fr) max-content max-content!important;gap:3px}
+ #game .board-panel{padding:0!important}
+ #game .board-wrap{border-width:2px!important}
+ #game .board-legend{display:none}
+ #game .chat-panel{height:auto!important;max-height:none!important;padding:3px!important}
+ #game .chat-panel .chat-log{display:none!important}
+ #game .chat-actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}
+ #game .chat-actions button{min-height:26px;padding:3px 1px;font-size:11px}
+ #game .control{padding:4px 7px!important}
+ #game .action-area p{margin:0 0 2px}
+}
 </style></head>
 <body>
 <div class="shell">
