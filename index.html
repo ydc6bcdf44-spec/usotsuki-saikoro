@@ -597,7 +597,7 @@ body:has(#game:not(.hidden)) .header{flex-basis:26px!important;min-height:26px!i
  <h2>うそを見破って、<br>島の頂上を目指そう。</h2>
  <p class="lobby-copy">サイコロの出目を自由に宣言。相手を信じるか、ダウトするか。先にゴールへ到達したプレイヤーの勝利。</p>
  <label class="field-label" for="playerName">プレイヤー名</label>
- <input class="field" id="playerName" maxlength="12" placeholder="名前を入力">
+ <input class="field" id="playerName" maxlength="12" placeholder="名前を入力"><small style="display:block;font-size:10px;line-height:1.5;color:#657e76;margin-top:8px">利用状況の把握のため、匿名ID・入力した名前・端末区分・アクセス日時を記録します。</small>
  <label class="field-label" for="goalSelect">対戦モード</label><select class="field" id="goalSelect"><option value="15">15マス · クイック対戦</option><option value="30" selected>30マス · 通常対戦</option></select><button class="primary wide" id="createBtn" style="margin-top:12px">部屋を作成する</button>
  <div class="lobby-actions">
   <button class="secondary" id="randomBtn">ランダムマッチ</button>
@@ -824,6 +824,22 @@ function saveSettings(){
  }));
 }
 
+let islandVisitId=null,islandVisitTimer=null,islandVisitBusy=false;
+async function islandVisitPing(){
+ if(!user||document.hidden||islandVisitBusy)return;
+ try{
+  islandVisitBusy=true;
+  if(!islandVisitId)islandVisitId=crypto.randomUUID();
+  const playerName=$("playerName").value.trim()||(game?.players?.[myIndex]||"");
+  await db.rpc("island_visit_ping",{p_visit:islandVisitId,p_name:playerName,p_device:matchMedia("(pointer:coarse)").matches||/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)?"mobile":"desktop"});
+ }catch(e){}finally{islandVisitBusy=false}
+}
+function startIslandVisit(){
+ if(islandVisitTimer)return;
+ islandVisitPing();islandVisitTimer=setInterval(islandVisitPing,30000);
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden)islandVisitPing()});
+ $("playerName").addEventListener("change",islandVisitPing);
+}
 async function connect(){
  try{
   if(!window.supabase)throw Error("通信ライブラリを読み込めませんでした。ページを再読み込みしてください");
@@ -835,7 +851,7 @@ async function connect(){
    const {data,error}=await Promise.race([db.auth.signInAnonymously(),new Promise((_,reject)=>setTimeout(()=>reject(Error("ログインがタイムアウトしました。再読み込みしてください")),12000))]);
    if(error)throw error;
    user=data.user;
-  }status("オンライン接続済み");
+  }status("オンライン接続済み");startIslandVisit();
   await restoreRoom();loadStats();
  }catch(e){
   status("接続エラー："+e.message);
