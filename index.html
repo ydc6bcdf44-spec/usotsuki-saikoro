@@ -550,7 +550,13 @@ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!importan
 #game #mapChatPanel .chat-actions button{min-height:34px}
 #game #mapChatPanel .chat-log{display:none!important}
 @media(max-width:760px){#game:not(.hidden){grid-template-rows:50px max-content minmax(0,1fr)!important;gap:8px!important}#game .control{overflow-y:auto!important;justify-content:safe center}}
-</style><style>#settingsModal .setting-row{gap:10px;padding:12px 4px;border-bottom:1px solid #c8a77766}#settingsModal .setting-row label{display:flex;align-items:center;gap:8px}#settingsModal input[type=checkbox]{accent-color:#329a8c;width:22px;height:22px}#settingsModal .range{accent-color:#329a8c;min-width:70px;max-width:45%}.audio-state,.audio-percent{font-weight:900;color:#476c5c;min-width:38px;text-align:right}.start-die-card strong[data-face]:not([data-face=""]){display:grid;place-items:center;min-width:34px;min-height:34px;background:#fff8e6;border:2px solid #b78d58;border-radius:7px;box-shadow:0 2px #a7794c;color:#68492e}</style></head>
+</style><style>#settingsModal .setting-row{gap:10px;padding:12px 4px;border-bottom:1px solid #c8a77766}#settingsModal .setting-row label{display:flex;align-items:center;gap:8px}#settingsModal input[type=checkbox]{accent-color:#329a8c;width:22px;height:22px}#settingsModal .range{accent-color:#329a8c;min-width:70px;max-width:45%}.audio-state,.audio-percent{font-weight:900;color:#476c5c;min-width:38px;text-align:right}.start-die-card strong[data-face]:not([data-face=""]){display:grid;place-items:center;min-width:34px;min-height:34px;background:#fff8e6;border:2px solid #b78d58;border-radius:7px;box-shadow:0 2px #a7794c;color:#68492e}</style><style id="dual-island-routes">
+#game #board[data-goal="15"] .cell[data-lane="0"]{background-image:url("./assets/tile-sand.png")!important}
+#game #board[data-goal="15"] .cell[data-lane="1"]{background-image:url("./assets/tile-grass.png")!important}
+#game #board[data-goal="15"] .cell{width:4.6%;height:7.8%}
+#game #board[data-goal="15"] .cell[data-lane="1"] .n{color:#365d49}
+#game #board[data-goal="15"] .cell[data-lane="0"] .n{color:#785239}
+</style></head>
 <body>
 <div class="shell">
 <header class="header">
@@ -1024,9 +1030,10 @@ function animateTokens(pos){
  function step(){
  if(room?.id!==id){walkTimer=null;return}
  const prev=[...lastRenderedPositions],next=prev.map((v,i)=>v+Math.sign(walkTarget[i]-v));
- const cells=$("board").querySelectorAll(".cell"),origins=prev.map((v,i)=>cells[v]?.querySelector('img[alt="プレイヤー'+(i+1)+'"]')?.getBoundingClientRect());
+ const tokenSelector=i=>'img[alt="プレイヤー'+(i+1)+'"]';
+ const origins=prev.map((v,i)=>$("board").querySelector(tokenSelector(i))?.getBoundingClientRect());
  lastRenderedPositions=next;drawBoard(next);
- next.forEach((v,i)=>{if(v===prev[i])return;const cell=$("board").querySelectorAll(".cell")[v],im=cell?.querySelector('img[alt="プレイヤー'+(i+1)+'"]');if(!im)return;const r=im.getBoundingClientRect(),o=origins[i],dx=o?o.left-r.left:0,dy=o?o.top-r.top:0;im.animate([{transform:"translate("+dx+"px,"+dy+"px)"},{transform:"translate("+(dx*.5)+"px,"+(dy*.5-9)+"px)",offset:.5},{transform:"translate(0,0)"}],{duration:500,easing:"ease-in-out"});cell.classList.add("island-landing")});
+ next.forEach((v,i)=>{if(v===prev[i])return;const im=$("board").querySelector(tokenSelector(i));if(!im)return;const r=im.getBoundingClientRect(),o=origins[i],dx=o?o.left-r.left:0,dy=o?o.top-r.top:0;im.animate([{transform:"translate("+dx+"px,"+dy+"px)"},{transform:"translate("+(dx*.5)+"px,"+(dy*.5-9)+"px)",offset:.5},{transform:"translate(0,0)"}],{duration:500,easing:"ease-in-out"});im.closest(".cell")?.classList.add("island-landing")});
  walkTimer=setTimeout(()=>{walkTimer=null;if(lastRenderedPositions.some((v,i)=>v!==walkTarget[i]))step();else if(game?.finished)onGameFinished()},620);
  }
  step();
@@ -1046,31 +1053,28 @@ function playVictoryFanfare(){
  stopBgm();if(!$("bgmToggle").checked)return;
  try{initAudio();[523.25,659.25,783.99,1046.5,783.99,1046.5,1318.51].forEach((hz,i)=>{const at=audio.currentTime+i*.16,o=audio.createOscillator(),g=audio.createGain();o.type="triangle";o.frequency.value=hz;g.gain.setValueAtTime(.0001,at);g.gain.exponentialRampToValueAtTime(Number($("bgmVolume").value)/100*.055,at+.02);g.gain.exponentialRampToValueAtTime(.0001,at+.3);o.connect(g);g.connect(audio.destination);o.start(at);o.stop(at+.32)})}catch(e){}
 }
+const islandBridge15=[[20.9,73.8],[28.7,78],[37,76.6],[45,74],[50,65],[53,58],[58,57],[64,55.5],[72,54.8],[80.5,53.5],[87,45],[88,39],[85.5,33],[83.5,31],[84,23],[86.1,18]];
+const islandUpper15=[[20.9,73.8],[27.5,65],[30.6,60],[25.8,56],[20.3,51],[19.7,47],[25.7,43.8],[34.3,40.6],[36,36],[36,33],[44,29],[47,23],[55,21],[65,23],[75,26],[86.1,18]];
 const islandRoute=[[188,374],[220,391],[259,394],[310,390],[365,383],[412,376],[438,365],[454,342],[459,322],[477,307],[502,291],[530,288],[559,286],[588,282],[615,278],[650,278],[688,278],[725,270],[755,254],[779,231],[792,211],[789,194],[776,176],[761,156],[755,136],[756,120],[765,103],[775,91]];
-function islandPoint(i,goal){const lengths=[0];for(let j=1;j<islandRoute.length;j++)lengths.push(lengths[j-1]+Math.hypot(islandRoute[j][0]-islandRoute[j-1][0],islandRoute[j][1]-islandRoute[j-1][1]));const d=lengths[lengths.length-1]*i/goal;let j=1;while(j<lengths.length-1&&lengths[j]<d)j++;const t=(d-lengths[j-1])/(lengths[j]-lengths[j-1]);return [(islandRoute[j-1][0]+(islandRoute[j][0]-islandRoute[j-1][0])*t)/9,(islandRoute[j-1][1]+(islandRoute[j][1]-islandRoute[j-1][1])*t)/5.07]}
+function islandPoint(i,goal,lane=0){
+ if(goal===15)return (lane===1?islandUpper15:islandBridge15)[i];
+ const lengths=[0];for(let j=1;j<islandRoute.length;j++)lengths.push(lengths[j-1]+Math.hypot(islandRoute[j][0]-islandRoute[j-1][0],islandRoute[j][1]-islandRoute[j-1][1]));const d=lengths[lengths.length-1]*i/goal;let j=1;while(j<lengths.length-1&&lengths[j]<d)j++;const t=(d-lengths[j-1])/(lengths[j]-lengths[j-1]);return [(islandRoute[j-1][0]+(islandRoute[j][0]-islandRoute[j-1][0])*t)/9,(islandRoute[j-1][1]+(islandRoute[j][1]-islandRoute[j-1][1])*t)/5.07];
+}
 function drawBoard(displayPos){
  const board=$("board");board.replaceChildren();
- const pos=displayPos|| (Array.isArray(game?.pos)?game.pos:[0,0]);
- const goal=goalTiles();board.dataset.goal=String(goal);
- document.querySelector(".board-heading span").textContent="START → GOAL · "+goal+" STEPS";
+ const pos=displayPos||(Array.isArray(game?.pos)?game.pos:[0,0]),goal=goalTiles();
+ board.dataset.goal=String(goal);
+ document.querySelector(".board-heading span").textContent=(goal===15?"2つの冒険ルート":"START → GOAL")+" · "+goal+" STEPS";
  document.querySelector(".board-legend span:last-child").textContent="GOAL · "+goal;
- for(let i=0;i<=goal;i++){
-  const [x,y]=islandPoint(i,goal);
-  const cell=document.createElement("div");
-  cell.className="cell";cell.style.left=x+"%";cell.style.top=y+"%";
-  if(i===0)cell.classList.add("start");
-  if(i===goal)cell.classList.add("goal");
+ function addCell(i,lane){
+  const [x,y]=islandPoint(i,goal,lane),cell=document.createElement("div"),shared=goal!==15||i===0||i===goal;
+  cell.className="cell";cell.dataset.step=String(i);cell.dataset.lane=shared?"shared":String(lane);cell.style.left=x+"%";cell.style.top=y+"%";
+  if(i===0)cell.classList.add("start");if(i===goal)cell.classList.add("goal");
   const tokens=document.createElement("div");tokens.className="tokens";
-  if(pos[0]===i){
-   const im=document.createElement("img");im.src=$("avatar0").src;im.alt="プレイヤー1";tokens.append(im);
-  }
-  if(pos[1]===i){
-   const im=document.createElement("img");im.src=$("avatar1").src;im.alt="プレイヤー2";tokens.append(im);
-  }
-  const n=document.createElement("div");n.className="n";
-  n.textContent=i===0?"START":i===goal?"GOAL":String(i);
-  cell.append(tokens,n);board.append(cell);
+  for(let j=0;j<2;j++)if(pos[j]===i&&(shared||j===lane)){const im=document.createElement("img");im.src=$("avatar"+j).src;im.alt="プレイヤー"+(j+1);tokens.append(im)}
+  const n=document.createElement("div");n.className="n";n.textContent=i===0?"START":i===goal?"GOAL":String(i);cell.append(tokens,n);board.append(cell);
  }
+ for(let i=0;i<=goal;i++){addCell(i,0);if(goal===15&&i>0&&i<goal)addCell(i,1)}
 }
 function render(){
  if(!game||myIndex<0)return;
@@ -1078,7 +1082,7 @@ function render(){
  const pos=game.pos||[0,0],finished=!!game.finished,phase=game.phase;
  for(let i=0;i<2;i++){
   $("player"+i).textContent=p[i]||"PLAYER "+(i+1);
-  $("playerPos"+i).textContent=(pos[i]||0)+" / "+goalTiles()+" マス";
+  $("playerPos"+i).textContent=(pos[i]||0)+" / "+goalTiles()+" マス"+(goalTiles()===15?(i===0?" · 橋":" · 滝"):"");
   $("progress"+i).style.width=Math.min(100,(pos[i]||0)/goalTiles()*100)+"%";
   $("card"+i).classList.toggle("active",!finished&&game.turn===i);
  }
