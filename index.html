@@ -543,6 +543,13 @@ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!importan
 #game .chat-actions button{min-height:32px!important;padding:4px!important}
 }
 @media(max-width:760px) and (max-height:620px){#game:not(.hidden){gap:5px!important;grid-template-rows:44px max-content minmax(0,1fr) max-content!important}#game .chat-actions button{min-height:27px!important}#game .control{padding:4px 8px!important}}
+</style><style>
+#game .board-wrap #mapChatToggle{position:absolute;right:8px;bottom:8px;z-index:25;padding:6px 12px;font-size:12px}
+#game .board-wrap #mapChatPanel{position:absolute;bottom:44px;right:8px;left:8px;z-index:26;height:auto!important;max-height:none!important;padding:8px!important;display:block;background:#fff0d5f5}
+#game #mapChatPanel .chat-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+#game #mapChatPanel .chat-actions button{min-height:34px}
+#game #mapChatPanel .chat-log{display:none!important}
+@media(max-width:760px){#game:not(.hidden){grid-template-rows:50px max-content minmax(0,1fr)!important;gap:8px!important}#game .control{overflow-y:auto!important;justify-content:safe center}}
 </style></head>
 <body>
 <div class="shell">
@@ -590,7 +597,14 @@ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!importan
    <div class="board-heading"><h3>THE ISLAND MAP</h3><span>START → GOAL · 30 STEPS</span></div>
    <div class="board-wrap">
     <div class="island-art" aria-hidden="true"><img class="island-land" src="./assets/island-background.webp" alt=""><img alt="" class="island-prop island-sway" src="./assets/palm.png" style="left:30%;top:54%;width:9%;animation-delay:-0s"><img alt="" class="island-prop island-sway" src="./assets/palm.png" style="left:69%;top:37%;width:8%;animation-delay:-1.5s"><img alt="" class="island-prop island-crab" src="./assets/crab.png" style="left:39%;top:85%;width:4.5%;animation-delay:-0s"><img alt="" class="island-prop island-butterfly" src="./assets/butterfly.png" style="left:31%;top:43%;width:3.6%;animation-delay:-0s"><div class="island-falls"></div><div class="island-sea-glint"></div></div>
-    <div id="board"></div><div class="floating-chat" id="floatingChat" aria-hidden="true"></div>
+    <div id="board"></div><button type="button" id="mapChatToggle" class="gold-btn" aria-expanded="false">チャット</button><div class="surface chat-panel hidden" id="mapChatPanel">
+   <div class="panel-title"><h3>QUICK CHAT</h3><span style="font-size:9px;color:#a0b2a5">定型メッセージ</span></div>
+   <div id="chatError" class="hidden" role="alert" style="font-size:11px;color:#b74b62;padding:4px"></div><div class="chat-log" id="chatLog"><div class="chat-msg">対戦中のメッセージがここに表示されます。</div></div>
+   <div class="chat-actions">
+    <button data-chat="hello">よろしく！</button><button data-chat="suspicious">あやしい…</button><button data-chat="nice">ナイス！</button>
+    <button data-chat="oops">やっちゃった</button><button data-chat="hurry">急いで！</button><button data-chat="thanks">ありがとう</button>
+   </div>
+  </div><div class="floating-chat" id="floatingChat" aria-hidden="true"></div>
    </div>
    <div class="board-legend"><span>START · 0</span><span>島を冒険してGOALへ</span><span>GOAL · 30</span></div>
   </div>
@@ -607,14 +621,7 @@ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!importan
    <div class="action-area hidden" id="challengeArea"><h3>相手の宣言をどうする？</h3><p>本当だと思う？それともダウト？</p><div class="challenge-grid"><button class="danger" id="doubtBtn">ダウト！</button><button class="gold-btn" id="believeBtn">信じる</button></div></div>
    <div class="action-area hidden" id="finishedArea"><h3 id="winnerTitle">GAME OVER</h3><p id="winnerText"></p><button class="primary wide" id="finishedBackBtn">タイトルへ戻る</button></div>
   </div>
-  <div class="surface chat-panel">
-   <div class="panel-title"><h3>QUICK CHAT</h3><span style="font-size:9px;color:#a0b2a5">定型メッセージ</span></div>
-   <div id="chatError" class="hidden" role="alert" style="font-size:11px;color:#b74b62;padding:4px"></div><div class="chat-log" id="chatLog"><div class="chat-msg">対戦中のメッセージがここに表示されます。</div></div>
-   <div class="chat-actions">
-    <button data-chat="hello">よろしく！</button><button data-chat="suspicious">あやしい…</button><button data-chat="nice">ナイス！</button>
-    <button data-chat="oops">やっちゃった</button><button data-chat="hurry">急いで！</button><button data-chat="thanks">ありがとう</button>
-   </div>
-  </div>
+  
  </div>
 </section>
 <div class="footer">ISLAND ADVENTURE · BLUFF YOUR WAY TO THE TOP</div>
@@ -1404,9 +1411,10 @@ document.querySelectorAll("[data-number]").forEach(b=>{
  b.addEventListener("click",()=>action("declare",Number(b.dataset.number)));
 });
 document.querySelectorAll("[data-chat]").forEach(b=>{
- b.addEventListener("click",()=>sendChat(b.dataset.chat));
+ b.addEventListener("click",()=>{sendChat(b.dataset.chat);show("mapChatPanel",false);$("mapChatToggle").setAttribute("aria-expanded","false")});
 });
 
+$("mapChatToggle").onclick=()=>{const open=$("mapChatPanel").classList.contains("hidden");show("mapChatPanel",open);$("mapChatToggle").setAttribute("aria-expanded",String(open))};
 $("finishedBackBtn").onclick=goTitle;
 $("resultBackBtn").onclick=()=>{show("resultOverlay",false);goTitle()};
 $("leaveBackBtn").onclick=goTitle;
