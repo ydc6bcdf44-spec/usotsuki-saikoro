@@ -505,44 +505,6 @@ button:active:not(:disabled){box-shadow:inset 0 2px 4px #59452c40,0 1px #78573e}
 #game .board-wrap{aspect-ratio:900 / 507!important;height:auto!important;min-height:0!important;flex:none!important}
 #game .control{align-self:stretch!important;min-height:0!important;overflow-y:auto!important}
 }
-</style><style id="compact-match-layout">
-body:has(#game:not(.hidden)) .brand{display:none!important}
-body:has(#game:not(.hidden)) .header{justify-content:flex-end;margin-bottom:4px}
-@media(max-width:760px){
-body:has(#game:not(.hidden)){height:100dvh!important;overflow:hidden!important;padding: max(2px,env(safe-area-inset-top)) 2px max(3px,env(safe-area-inset-bottom))!important}
-body:has(#game:not(.hidden)) .header{height:25px!important;min-height:25px!important;flex:0 0 25px!important;margin:0 2px 3px!important}
-body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:2px 10px!important;font-size:11px;line-height:16px}
-#game:not(.hidden){grid-template-rows:44px max-content minmax(0,1fr) max-content!important;gap:4px!important;overflow:hidden!important}
-#game .board-panel{width:100%!important;padding:0!important;border-width:1px!important;box-sizing:border-box}
-#game .board-wrap{width:100%!important;aspect-ratio:900 / 507!important;height:auto!important;border-width:1px!important}
-#game .players{padding:2px!important;gap:3px!important}
-#game .control{display:flex;flex-direction:column;justify-content:center;overflow:hidden!important;min-height:0!important;padding:4px 6px!important}
-#game .control .turn-banner{flex:none;padding:3px 6px;margin-bottom:2px}
-#game .control .phase-line{flex:none;margin:0}
-#game .control .action-area{padding-top:2px}
-#game .control .action-area p{margin:0 0 2px;font-size:11px;line-height:1.25}
-#game .control .action-area h3{margin:0 0 2px;font-size:13px}
-#game .control .action-area button{min-height:30px;padding:4px 6px}
-#game .chat-panel{padding:2px!important}
-#game .chat-actions button{min-height:25px!important;padding:2px!important}
-}
-</style><style id="relaxed-mobile-layout">
-@media(max-width:760px){
-body:has(#game:not(.hidden)){padding:max(6px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))!important}
-body:has(#game:not(.hidden)) .header{height:30px!important;min-height:30px!important;flex-basis:30px!important;margin:0 0 7px!important}
-body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!important}
-#game:not(.hidden){grid-template-rows:50px max-content minmax(0,1fr) max-content!important;gap:8px!important}
-#game .players{padding:4px!important;gap:6px!important}
-#game .board-panel{border-width:2px!important;padding:2px!important}
-#game .control{padding:8px 10px!important;justify-content:center;overflow-y:auto!important}
-#game .control .turn-banner{padding:6px 8px;margin-bottom:5px}
-#game .control .action-area{padding-top:5px}
-#game .control .action-area button{min-height:36px;padding:6px 9px}
-#game .chat-panel{padding:5px!important}
-#game .chat-actions{gap:5px!important}
-#game .chat-actions button{min-height:32px!important;padding:4px!important}
-}
-@media(max-width:760px) and (max-height:620px){#game:not(.hidden){gap:5px!important;grid-template-rows:44px max-content minmax(0,1fr) max-content!important}#game .chat-actions button{min-height:27px!important}#game .control{padding:4px 8px!important}}
 </style><style>
 #game .board-wrap #mapChatToggle{position:absolute;right:8px;bottom:8px;z-index:25;padding:6px 12px;font-size:12px}
 #game .board-wrap #mapChatPanel{position:absolute;bottom:44px;right:8px;left:8px;z-index:26;height:auto!important;max-height:none!important;padding:8px!important;display:block;background:#fff0d5f5}
@@ -556,60 +518,71 @@ body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!importan
 #game #board[data-goal="15"] .cell{width:4.6%;height:7.8%}
 #game #board[data-goal="15"] .cell[data-lane="1"] .n{color:#365d49}
 #game #board[data-goal="15"] .cell[data-lane="0"] .n{color:#785239}
-</style><style id="island-route-alignment">#game #board[data-goal="15"] .cell{width:4.1%;height:7.2%}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5.3%;height:8.2%}#game #board[data-goal="15"] .cell .n{font-size:clamp(7px,1.1vw,12px)}#game #board[data-goal="15"] .cell.start .n,#game #board[data-goal="15"] .cell.goal .n{font-size:clamp(5px,.85vw,8px)}</style><style id="non-overlap-tiles">#game #board[data-goal="15"] .cell{width:4.1%!important;height:7.2%!important;box-sizing:border-box;min-width:0;min-height:0}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5%!important;height:8.7%!important}#game #board[data-goal="15"] .cell .n{white-space:nowrap;overflow:hidden}#game #board[data-goal="15"] .cell .tokens{pointer-events:none}</style><style id="portrait-map-layout">
+</style><style id="island-route-alignment">#game #board[data-goal="15"] .cell{width:4.1%;height:7.2%}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5.3%;height:8.2%}#game #board[data-goal="15"] .cell .n{font-size:clamp(7px,1.1vw,12px)}#game #board[data-goal="15"] .cell.start .n,#game #board[data-goal="15"] .cell.goal .n{font-size:clamp(5px,.85vw,8px)}</style><style id="non-overlap-tiles">#game #board[data-goal="15"] .cell{width:4.1%!important;height:7.2%!important;box-sizing:border-box;min-width:0;min-height:0}#game #board[data-goal="15"] .cell.start,#game #board[data-goal="15"] .cell.goal{width:5%!important;height:8.7%!important}#game #board[data-goal="15"] .cell .n{white-space:nowrap;overflow:hidden}#game #board[data-goal="15"] .cell .tokens{pointer-events:none}</style><style id="match-layout-final">
+.match-control-head,.match-control-center,.match-status{display:contents}
+body:has(#game:not(.hidden)) .brand{display:none!important}
+body:has(#game:not(.hidden)) .header{justify-content:flex-end}
 #game #board[data-goal] .cell .n{font-weight:900;color:#4e3724;text-shadow:0 1px #fff9e4,1px 0 #fff9e4,-1px 0 #fff9e4,0 -1px #fff9e4}
 @media(max-width:760px){
-body:has(#game:not(.hidden)){padding:max(6px,env(safe-area-inset-top)) 8px max(10px,env(safe-area-inset-bottom))!important}
-#game:not(.hidden){grid-template-rows:50px max-content minmax(0,1fr)!important;gap:9px!important}
-#game .board-panel{width:calc(100% + 16px)!important;margin-inline:-8px;padding:0!important;border:0!important;background:transparent;box-shadow:none;border-radius:0!important}
-#game .board-wrap{width:100%!important;aspect-ratio:1648 / 928!important;height:auto!important;min-height:0!important;border-width:2px!important;border-radius:9px}
-#game .control{align-self:end!important;max-height:100%!important;min-height:0!important;justify-content:flex-start!important;overflow-y:auto!important;padding:12px 10px!important}
-#game .control .turn-banner{margin-bottom:7px}
-#game .control .phase-line{margin-bottom:5px}
-#game .control .dice-stage{margin:6px auto}
-#game .control .action-area{padding-top:6px}
-#game .control .action-area button{min-height:40px}
+body:has(#game:not(.hidden)){height:100dvh!important;min-height:0!important;overflow:hidden!important;overscroll-behavior:none;padding:max(6px,env(safe-area-inset-top)) 6px max(8px,env(safe-area-inset-bottom))!important}
+body:has(#game:not(.hidden)) .shell{height:100%!important;min-height:0!important;max-height:100%!important;display:flex;flex-direction:column}
+body:has(#game:not(.hidden)) .header{flex:0 0 30px!important;min-height:30px!important;height:30px!important;margin:0 2px 7px!important}
+body:has(#game:not(.hidden)) .header-actions .icon-btn{padding:4px 12px!important;line-height:17px}
+#game:not(.hidden){flex:1 1 0!important;height:0!important;min-height:0!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:52px auto minmax(0,1fr)!important;gap:9px!important;overflow:visible!important}
+#game .left-col,#game .right-col{display:contents}
+#game .players{grid-row:1;padding:4px!important;gap:6px!important}
+#game .player{padding:3px 6px;min-height:0}
+#game .board-panel{grid-row:2;align-self:start!important;justify-self:center;width:100%!important;height:auto!important;min-height:0!important;margin:0!important;padding:2px!important;overflow:visible!important;border-width:2px}
+#game .board-wrap{width:100%!important;height:auto!important;aspect-ratio:1648 / 928!important;min-height:0!important;flex:none!important;border-width:1px!important}
+#game .board-heading,#game .board-legend{display:none!important}
+#game .control{grid-row:3;align-self:stretch!important;display:flex!important;flex-direction:column;justify-content:space-between!important;gap:8px;max-height:none!important;min-height:0!important;overflow:visible!important;padding:12px!important;box-sizing:border-box}
+#game .match-control-head{display:flex;align-items:center;gap:8px;flex:none}
+#game .match-control-head .turn-banner{flex:1;min-width:0;margin:0;padding:7px 5px;font-size:13px;line-height:1.3}
+#game .match-control-head .phase-line{flex:none;margin:0}
+#game .match-control-head .phase-tag{display:none}
+#game .match-control-head .timer{font-size:22px;min-width:42px;padding:2px 5px;line-height:1.35;text-align:center}
+#game .match-control-center{display:flex;flex:1 1 auto;min-height:0;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+#game .match-control-center .dice-stage{flex:none;width:66px;height:66px;margin:0}
+#game #dice.die{width:46px;height:46px;--half:23px}
+#game .match-status{display:block;width:100%;text-align:center}
+#game .match-status .private{font-size:10px;min-height:0;margin:0 0 2px;line-height:1.3}
+#game .match-status .private:empty{display:none}
+#game .match-status .message{min-height:0;padding:5px 8px;margin:0;font-size:12px;line-height:1.4;border-radius:6px;overflow-wrap:anywhere}
+#game #idleWarning{flex:none;margin:0;padding:4px;font-size:11px}
+#game .control .action-area:not(.hidden){flex:none;margin:0;padding-top:8px}
+#game .control .action-area h3{margin:0 0 3px;font-size:14px;line-height:1.3}
+#game .control .action-area p{margin:0 0 6px;font-size:11px;line-height:1.35}
+#game .control .action-area button{min-height:40px;padding:6px 8px}
+#game .control #setupRollBtn,#game .control #rollBtn{min-height:42px;margin-top:2px}
+#game .control .number-grid{gap:5px}
+#game .control .number-btn{padding:6px 0}
+#game .control .start-dice-pair{margin:4px 0;gap:7px}
+#game .control .start-die-card{padding:3px 5px}
+#game .control .setup-result{min-height:0;margin:3px 0}
+#game .control .setup-result:empty{display:none}
 #game #board[data-goal="15"] .cell .n{font-size:8px!important}
 #game #board[data-goal="15"] .cell.start .n,#game #board[data-goal="15"] .cell.goal .n{font-size:6px!important}
-#game .board-wrap #mapChatToggle{bottom:7px;right:7px}
 }
-@media(max-width:760px) and (max-height:620px){
-#game:not(.hidden){grid-template-rows:44px max-content minmax(0,1fr)!important;gap:6px!important}
-#game .control{padding:5px 8px!important}
-#game .control .action-area button{min-height:33px}
-#game .control .dice-stage{margin:2px auto}
+@media(max-width:760px) and (max-height:690px){
+#game:not(.hidden){grid-template-rows:48px auto minmax(0,1fr)!important;gap:7px!important}
+#game .control{padding:8px 10px!important;gap:5px}
+#game .match-control-center{flex-direction:row;gap:10px}
+#game .match-control-center .dice-stage{width:56px;height:56px}
+#game #dice.die{width:40px;height:40px;--half:20px}
+#game .match-status{flex:1;min-width:0}
+#game .match-control-head .turn-banner{padding:5px}
+#game .control .action-area:not(.hidden){padding-top:5px}
+#game .control .action-area p{margin-bottom:3px}
+#game .control .start-die-card strong[data-face]:not([data-face=""]){min-width:28px;min-height:28px}
 }
-</style><style id="portrait-control-reflow">
-@media(max-width:760px){
-body:has(#game:not(.hidden)){height:100dvh!important;overflow:hidden!important;overscroll-behavior:none}
-body:has(#game:not(.hidden)) .shell{height:100%!important;min-height:0!important}
-#game:not(.hidden){grid-template-rows:50px max-content minmax(0,1fr)!important;gap:8px!important}
-#game .control{display:grid!important;grid-template-columns:68px minmax(0,1fr);grid-template-rows: auto auto auto auto auto auto;align-content:center;align-items:center;gap:4px 9px;align-self:end!important;min-height:0!important;max-height:100%!important;overflow:visible!important;padding:8px 10px!important}
-#game .control .turn-banner{grid-column:1/-1;grid-row:1;margin:0;padding:5px 7px}
-#game .control .phase-line{grid-column:2;grid-row:2;margin:0;gap:5px}
-#game .control .dice-stage{grid-column:1;grid-row:2/5;margin:0 auto;align-self:center}
-#game .control .message{grid-column:2;grid-row:3;min-height:0;padding:3px 5px;margin:0;font-size:11px;line-height:1.35;border-radius:5px;overflow-wrap:anywhere}
-#game .control .private{grid-column:2;grid-row:4;min-height:0;margin:0;font-size:10px;line-height:1.3}
-#game .control .private:empty,#game .control .setup-result:empty{display:none}
-#game .control #idleWarning{grid-column:1/-1;grid-row:5;margin:0;padding:3px;font-size:10px}
-#game .control .action-area:not(.hidden){grid-column:1/-1;grid-row:6;padding-top:5px}
-#game .control .action-area h3{margin:0 0 2px;line-height:1.3}
-#game .control .action-area p{margin:0 0 3px;line-height:1.25}
-#game .control .action-area button{min-height:38px;padding:5px 7px}
-#game .control .start-dice-pair{margin:3px 0;gap:6px}
-#game .control .start-die-card{padding:2px 5px}
-#game .control .start-die-card strong[data-face]:not([data-face=""]){min-width:26px;min-height:26px}
-#game .control .setup-result{margin:2px 0;min-height:0}
-#game .control:has(#diceStage.hidden) .phase-line,#game .control:has(#diceStage.hidden) .message,#game .control:has(#diceStage.hidden) .private{grid-column:1/-1}
-}
-@media(max-width:760px) and (max-height:650px){
-#game:not(.hidden){grid-template-rows:44px max-content minmax(0,1fr)!important;gap:5px!important}
-#game .control{gap:2px 7px;padding:5px 8px!important}
-#game .control .action-area button{min-height:34px}
-#game .control .turn-banner{padding:3px 6px}
+@media(max-width:760px) and (max-height:580px){
+body:has(#game:not(.hidden)) .header{flex-basis:26px!important;min-height:26px!important;height:26px!important;margin-bottom:5px!important}
+#game:not(.hidden){grid-template-rows:44px auto minmax(0,1fr)!important;gap:5px!important}
+#game .board-panel{width:min(100%,max(190px,calc((100dvh - 325px) * 1.775)))!important}
+#game .control{padding:5px 8px!important;gap:3px}
 #game .control .action-area p{font-size:10px}
-#game .control .action-area:not(.hidden){padding-top:3px}
-#game .control .start-die-card{padding:1px 4px}
+#game .control .action-area button{min-height:34px}
+#game .control #setupRollBtn,#game .control #rollBtn{min-height:36px}
 }
 </style></head>
 <body>
@@ -672,10 +645,10 @@ body:has(#game:not(.hidden)) .shell{height:100%!important;min-height:0!important
  </div>
  <div class="right-col">
   <div class="surface control">
-   <div class="turn-banner" id="turnBanner" aria-live="polite">先攻決め</div><div class="phase-line"><span class="phase-tag" id="phaseTag">YOUR TURN</span><span class="timer" id="timer">--</span></div>
-   <div id="idleWarning" class="idle-warning hidden" role="alert"></div><div class="dice-stage" id="diceStage"><div class="die" id="dice"></div></div>
-   <div class="private" id="privateRoll"></div>
-   <div class="message" id="message">ゲーム開始！</div>
+   <div class="match-control-head"><div class="turn-banner" id="turnBanner" aria-live="polite">先攻決め</div><div class="phase-line"><span class="phase-tag" id="phaseTag">YOUR TURN</span><span class="timer" id="timer">--</span></div></div>
+   <div id="idleWarning" class="idle-warning hidden" role="alert"></div><div class="match-control-center"><div class="dice-stage" id="diceStage"><div class="die" id="dice"></div></div>
+   <div class="match-status"><div class="private" id="privateRoll"></div>
+   <div class="message" id="message">ゲーム開始！</div></div></div>
    <div class="action-area hidden" id="setupArea"><h3>先攻を決めよう</h3><p id="setupHint">お互いにサイコロを振ってね。</p><div class="start-dice-pair" id="startDicePair"><div class="start-die-card"><span>あなた</span><strong id="startMine">？</strong></div><div class="start-die-card"><span>相手</span><strong id="startOpponent">？</strong></div></div><div class="setup-result" id="setupResult"></div><button class="gold-btn wide" id="setupRollBtn">先攻決めのサイコロを振る</button></div>
    <div class="action-area hidden" id="rollArea"><h3>あなたの番</h3><p>サイコロを振って、本当の出目を確認。</p><button class="primary roll-btn" id="rollBtn">サイコロを振る</button></div>
    <div class="action-area hidden" id="declareArea"><h3>数字を宣言しよう</h3><p>本当の出目と違う数字を選んでもOK。</p><div class="number-grid" id="numberChoices"><button class="number-btn" data-number="1">1</button><button class="number-btn" data-number="2">2</button><button class="number-btn" data-number="3">3</button><button class="number-btn" data-number="4">4</button><button class="number-btn" data-number="5">5</button><button class="number-btn" data-number="6">6</button></div></div>
